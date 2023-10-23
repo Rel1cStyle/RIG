@@ -9,7 +9,7 @@ import flet as ft
 
 logging.basicConfig(level=logging.DEBUG)
 
-deta = Deta()
+deta = Deta(project_key=os.getenv("DETA_PROJECT_KEY"))
 
 dd = deta.Drive("free_images")
 
