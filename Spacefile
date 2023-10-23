@@ -1,0 +1,10 @@
+# Spacefile Docs: https://go.deta.dev/docs/spacefile/v0
+v: 0
+micros:
+  - name: Rel1cFIGallery
+    src: ./
+    engine: python3.9
+    run: ./main.py
+    primary: true
+    public_routes:
+      - "/"
