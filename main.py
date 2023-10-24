@@ -18,7 +18,7 @@ async def get_images():
 	print("Loading Images...")
 
 	with open("images.json", mode="rb") as i:
-		image_list = json.loads(i)
+		image_list = json.loads(i.read())
 
 	print("Done")
 
