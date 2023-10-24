@@ -69,7 +69,7 @@ def main(page: ft.page):
 				ft.Stack(
 					controls=[
 						ft.Image(
-							src=backend_url + image,
+							src_base64=backend_url + image,
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
