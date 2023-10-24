@@ -8,16 +8,18 @@ import requests
 import flet as ft
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
-backend_url = "http://rel1cstylefig-1-c7867224.deta.app"
+backend_url = "http://rel1cstylefig-1-c7867224.deta.app/"
 
 
 def get_images():
-	res = requests.get(backend_url + "/list")
+	res = requests.get(backend_url + "list")
 	image_list = json.loads(res.text)
-	image_files = []
+	return image_list
+
+	"""image_files = []
 
 	os.makedirs(f"/tmp/images", exist_ok=True)
 
@@ -32,7 +34,7 @@ def get_images():
 		# 画像一覧へ追加
 		image_files.append("/tmp/images/" + image_name)
 
-	return image_files
+	return image_files"""
 
 
 def main(page: ft.page):
@@ -61,13 +63,13 @@ def main(page: ft.page):
 	def load_images(t: str=""):
 		image_grid.controls = []
 		for image in image_list:
-			if t.lower() not in os.path.basename(image).lower(): continue
+			if t.lower() not in image.lower(): continue
 			# 画像を生成
 			image_grid.controls.append(
 				ft.Stack(
 					controls=[
 						ft.Image(
-							src=image,
+							src=backend_url + image,
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
@@ -75,7 +77,7 @@ def main(page: ft.page):
 						ft.Row(
 							[
 								ft.Text(
-									f"{os.path.basename(image)}",
+									f"{image}",
 									color="white",
 									#bgcolor="black",
 									size=14,
