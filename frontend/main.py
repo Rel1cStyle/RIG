@@ -1,7 +1,9 @@
 import glob
+import json
 import os
 import base64
 import logging
+import requests
 
 from deta import Deta
 import flet as ft
@@ -9,13 +11,13 @@ import flet as ft
 
 logging.basicConfig(level=logging.DEBUG)
 
-deta = Deta(project_key=os.getenv("DETA_PROJECT_KEY"))
 
-dd = deta.Drive("free_images")
+backend_url = "https://rel1cstylefig-1-c7867224.deta.app"
 
 
 def get_images():
-	image_list = dd.list()["names"]
+	res = requests.get(backend_url + "/list")
+	image_list = json.loads(res.text)
 	image_files = []
 
 	os.makedirs(f"/tmp/images", exist_ok=True)
@@ -23,7 +25,7 @@ def get_images():
 	for image_name in image_list:
 		if not image_name.endswith(".webp"): continue
 		# 画像を取得する
-		image_bytes = dd.get(image_name).read()
+		image_bytes = requests.get(backend_url, params={"name": image_name}).content
 		# 画像をファイルに書き込む
 		with open("/tmp/images/" + image_name, "wb") as f:
 			f.write(image_bytes)

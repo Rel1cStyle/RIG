@@ -1,10 +1,18 @@
 # Spacefile Docs: https://go.deta.dev/docs/spacefile/v0
 v: 0
 micros:
-  - name: Rel1cFIGallery
-    src: ./
+  #- name: Frontend
+  #  src: ./frontend/
+  #  engine: static
+  #  serve: /dist
+  #  primary: true
+  #  public_routes:
+  #    - "/*"
+
+  - name: Backend
+    src: ./backend/
     engine: python3.9
-    run: ./main.py
-    primary: true
+    path: images
+    run: uvicorn main:app
     public_routes:
-      - "/"
+      - "/*"
