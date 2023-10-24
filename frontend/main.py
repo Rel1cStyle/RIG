@@ -5,7 +5,6 @@ import base64
 import logging
 import requests
 
-from deta import Deta
 import flet as ft
 
 
