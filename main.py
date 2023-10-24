@@ -11,7 +11,7 @@ import flet as ft
 logging.basicConfig(level=logging.INFO)
 
 
-backend_url = "http://rel1cstylefig-1-c7867224.deta.app/"
+backend_url = "https://rel1cstylefig-1-c7867224.deta.app/"
 
 
 async def get_images():
