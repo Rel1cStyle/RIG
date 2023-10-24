@@ -15,18 +15,10 @@ backend_url = "https://rel1cstylefig-1-c7867224.deta.app/"
 
 
 async def get_images():
-	print("Fetching Images...")
-	res = await pyfetch(backend_url + "list")
-	list = json.loads(await res.text())
+	print("Loading Images...")
 
-	image_list = {}
-	image_count = len(list)
-
-	for count, image in enumerate(list):
-		print(f"- {str(count+1)}/{image_count}")
-		res = await pyfetch(backend_url + image)
-		img = await res.text()
-		image_list[image] = img
+	with open("images.json", mode="rb") as i:
+		image_list = json.loads(i)
 
 	print("Done")
 
