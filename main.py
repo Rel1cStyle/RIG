@@ -23,6 +23,7 @@ async def get_images():
 		res = await pyfetch(backend_url + image)
 		img = await res.text()
 		image_list.append(img)
+	print("Done")
 	return image_list
 
 	"""image_files = []
