@@ -15,8 +15,14 @@ backend_url = "https://rel1cstylefig-1-c7867224.deta.app/"
 
 
 async def get_images():
+	print("Fetching Images...")
 	res = await pyfetch(backend_url + "list")
-	image_list = json.loads(await res.text())
+	list = json.loads(await res.text())
+	image_list = []
+	for image in list:
+		res = await pyfetch(backend_url + image)
+		img = await res.text()
+		image_list.append(img)
 	return image_list
 
 	"""image_files = []
@@ -66,14 +72,12 @@ async def main(page: ft.page):
 		for image in image_list:
 			if t.lower() not in image.lower(): continue
 			count += 1
-			res = await pyfetch(backend_url + image)
-			img = await res.text()
 			# 画像を生成
 			image_grid.controls.append(
 				ft.Stack(
 					controls=[
 						ft.Image(
-							src_base64=img,
+							src_base64=image,
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
@@ -101,9 +105,9 @@ async def main(page: ft.page):
 		print(f"Filtered Image Count: {str(count)}")
 
 
-	def search_box_on_change(e):
+	async def search_box_on_change(e):
 		print(f"Filtering: {e.control.value}")
-		load_images(e.control.value)
+		await load_images(e.control.value)
 
 	search_box = ft.TextField(
 		label="Search",
