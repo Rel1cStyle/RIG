@@ -3,7 +3,7 @@ import json
 import os
 import base64
 import logging
-import requests
+from pyodide.http import pyfetch
 
 import flet as ft
 
@@ -15,7 +15,7 @@ backend_url = "http://rel1cstylefig-1-c7867224.deta.app/"
 
 
 def get_images():
-	res = requests.get(backend_url + "list")
+	res = pyfetch(backend_url + "list")
 	image_list = json.loads(res.text)
 	return image_list
 
@@ -64,12 +64,14 @@ def main(page: ft.page):
 		image_grid.controls = []
 		for image in image_list:
 			if t.lower() not in image.lower(): continue
+			res = pyfetch(backend_url + image)
+			img = res.text()
 			# 画像を生成
 			image_grid.controls.append(
 				ft.Stack(
 					controls=[
 						ft.Image(
-							src_base64=backend_url + image,
+							src_base64=img,
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
