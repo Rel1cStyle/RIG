@@ -23,7 +23,7 @@ async def get_images():
 	image_count = len(list)
 
 	for count, image in enumerate(list):
-		print(f"- {str(count)}/{image_count}")
+		print(f"- {str(count+1)}/{image_count}")
 		res = await pyfetch(backend_url + image)
 		img = await res.text()
 		image_list[image] = img
