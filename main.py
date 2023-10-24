@@ -37,7 +37,7 @@ async def get_images():
 
 
 async def main(page: ft.page):
-	page.title = "Rel1cStyle 3D Image Gallery"
+	page.title = "Rel1cStyle Render Image Gallery"
 	page.padding = 20
 	await page.update_async()
 
