@@ -16,7 +16,7 @@ backend_url = "https://rel1cstylefig-1-c7867224.deta.app/"
 
 async def get_images():
 	res = await pyfetch(backend_url + "list")
-	image_list = json.loads(await res.text)
+	image_list = json.loads(await res.text())
 	return image_list
 
 	"""image_files = []
