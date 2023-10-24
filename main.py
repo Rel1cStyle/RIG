@@ -18,12 +18,18 @@ async def get_images():
 	print("Fetching Images...")
 	res = await pyfetch(backend_url + "list")
 	list = json.loads(await res.text())
+
 	image_list = []
-	for image in list:
+	image_count = len(list)
+
+	for count, image in enumerate(list):
+		print(f"- {str(count)}/{image_count}")
 		res = await pyfetch(backend_url + image)
 		img = await res.text()
 		image_list.append(img)
+
 	print("Done")
+
 	return image_list
 
 	"""image_files = []
