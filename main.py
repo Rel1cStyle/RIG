@@ -19,14 +19,14 @@ async def get_images():
 	res = await pyfetch(backend_url + "list")
 	list = json.loads(await res.text())
 
-	image_list = []
+	image_list = {}
 	image_count = len(list)
 
 	for count, image in enumerate(list):
 		print(f"- {str(count)}/{image_count}")
 		res = await pyfetch(backend_url + image)
 		img = await res.text()
-		image_list.append(img)
+		image_list[image] = img
 
 	print("Done")
 
@@ -76,7 +76,7 @@ async def main(page: ft.page):
 	async def load_images(t: str=""):
 		image_grid.controls = []
 		count = 0
-		for image in image_list:
+		for image in image_list.keys():
 			if t.lower() not in image.lower(): continue
 			count += 1
 			# 画像を生成
@@ -84,7 +84,7 @@ async def main(page: ft.page):
 				ft.Stack(
 					controls=[
 						ft.Image(
-							src_base64=image,
+							src_base64=image_list[image],
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
