@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 async def get_images():
 	print("Loading Images...")
 
-	with open("assets/images.json", mode="rb") as i:
+	with open("data/images.json", mode="rb") as i:
 		image_list = json.loads(i.read())
 
 	print("Done")
