@@ -24,23 +24,6 @@ async def get_images():
 
 	return image_list
 
-	"""image_files = []
-
-	os.makedirs(f"/tmp/images", exist_ok=True)
-
-	for image_name in image_list:
-		if not image_name.endswith(".webp"): continue
-		# 画像を取得する
-		image_bytes = requests.get(backend_url, params={"name": image_name}).content
-		# 画像をファイルに書き込む
-		with open("/tmp/images/" + image_name, "wb") as f:
-			f.write(image_bytes)
-		image_bytes.close()
-		# 画像一覧へ追加
-		image_files.append("/tmp/images/" + image_name)
-
-	return image_files"""
-
 
 async def main(page: ft.page):
 	page.title = "RFIG"
@@ -66,11 +49,18 @@ async def main(page: ft.page):
 	)
 
 	async def load_images(t: str=""):
+		print("Loading...")
+
 		image_grid.controls = []
 		count = 0
+
+		if t != "": print(f"- Filtering: {t}")
+
 		for image in image_list.keys():
 			if t.lower() not in image.lower(): continue
 			count += 1
+			print(f"- {image} ({str(count)}/{len(image_list)})")
+
 			# 画像を生成
 			image_grid.controls.append(
 				ft.Stack(
@@ -104,13 +94,12 @@ async def main(page: ft.page):
 		print(f"Filtered Image Count: {str(count)}")
 
 
-	async def search_box_on_change(e):
-		print(f"Filtering: {e.control.value}")
+	async def search_box_on_submit(e):
 		await load_images(e.control.value)
 
 	search_box = ft.TextField(
 		label="Search",
-		on_change=search_box_on_change
+		on_submit=search_box_on_submit
 	)
 
 	search_box_base = ft.Container(
