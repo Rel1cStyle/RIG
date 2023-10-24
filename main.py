@@ -14,9 +14,9 @@ logging.basicConfig(level=logging.INFO)
 backend_url = "http://rel1cstylefig-1-c7867224.deta.app/"
 
 
-def get_images():
-	res = pyfetch(backend_url + "list")
-	image_list = json.loads(res.text)
+async def get_images():
+	res = await pyfetch(backend_url + "list")
+	image_list = json.loads(await res.text)
 	return image_list
 
 	"""image_files = []
@@ -37,12 +37,12 @@ def get_images():
 	return image_files"""
 
 
-def main(page: ft.page):
+async def main(page: ft.page):
 	page.title = "RFIG"
 	page.padding = 20
 	page.update()
 
-	image_list = get_images()
+	image_list = await get_images()
 	print("Image Count: " + str(len(image_list)))
 
 	image_grid = ft.GridView(
@@ -60,12 +60,12 @@ def main(page: ft.page):
 		expand=True
 	)
 
-	def load_images(t: str=""):
+	async def load_images(t: str=""):
 		image_grid.controls = []
 		for image in image_list:
 			if t.lower() not in image.lower(): continue
-			res = pyfetch(backend_url + image)
-			img = res.text()
+			res = await pyfetch(backend_url + image)
+			img = await res.text()
 			# 画像を生成
 			image_grid.controls.append(
 				ft.Stack(
@@ -122,7 +122,7 @@ def main(page: ft.page):
 
 	page.add(base_column)
 
-	load_images()
+	await load_images()
 
 
 ft.app(target=main, view=ft.AppView.WEB_BROWSER)
