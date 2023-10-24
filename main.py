@@ -63,7 +63,7 @@ async def main(page: ft.page):
 				ft.Stack(
 					controls=[
 						ft.Image(
-							src_base64=image_list[image],
+							src_base64=image_list[image]["preview"],
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
