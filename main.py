@@ -62,8 +62,10 @@ async def main(page: ft.page):
 
 	async def load_images(t: str=""):
 		image_grid.controls = []
+		count = 0
 		for image in image_list:
 			if t.lower() not in image.lower(): continue
+			count += 1
 			res = await pyfetch(backend_url + image)
 			img = await res.text()
 			# 画像を生成
@@ -96,6 +98,7 @@ async def main(page: ft.page):
 				)
 			)
 		page.update()
+		print(f"Filtered Image Count: {str(count)}")
 
 
 	def search_box_on_change(e):
