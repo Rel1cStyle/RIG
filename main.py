@@ -11,13 +11,10 @@ import flet as ft
 logging.basicConfig(level=logging.INFO)
 
 
-backend_url = "https://rel1cstylefig-1-c7867224.deta.app/"
-
-
 async def get_images():
 	print("Loading Images...")
 
-	with open("images.json", mode="rb") as i:
+	with open("assets/images.json", mode="rb") as i:
 		image_list = json.loads(i.read())
 
 	print("Done")
@@ -120,4 +117,4 @@ async def main(page: ft.page):
 	await load_images()
 
 
-ft.app(target=main, view=ft.AppView.WEB_BROWSER)
+ft.app(target=main, view=ft.AppView.WEB_BROWSER, assets_dir="assets")
