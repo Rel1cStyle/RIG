@@ -1,6 +1,8 @@
 from os import getenv
 
 class App():
-    name = "Rel1cStyle Render Image Gallery"
-    version = "1.0"
-    commit_sha = getenv("CF_PAGES_COMMIT_SHA")
+    def __init__(self):
+        App.name = "Rel1cStyle Render Image Gallery"
+        App.version = "1.0"
+        with open("_commit_sha.txt", mode="r") as f:
+            App.commit_sha = f.read()
