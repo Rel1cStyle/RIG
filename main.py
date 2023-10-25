@@ -199,7 +199,7 @@ async def main(page: ft.page):
 		title=ft.Text(App.name, size=16),
 		center_title=True,
 		actions=[
-			ft.Container(content=ft.Text(App.branch + "-" + App.commit_sha, size=14), padding=20)
+			ft.Container(content=ft.Text(f"{App.branch}.{App.commit_sha}", size=12), padding=20)
 		]
 		#leading=ft.Image(
 		#	src="icons/icon.png",
