@@ -188,6 +188,9 @@ async def main(page: ft.page):
 	page.padding = 20
 	await page.update_async()
 
+	print("Version: " + App.version)
+	print("Commit: " + App.commit_sha)
+
 	# 画像一覧を読み込み
 	await Images.load()
 
