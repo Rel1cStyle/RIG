@@ -195,6 +195,9 @@ async def main(page: ft.page):
 	page.appbar = ft.AppBar(
 		title=ft.Text(App.name, size=16),
 		center_title=True,
+		actions=[
+			ft.Container(content=ft.Text(f"Version {App.version}", size=14), padding=20)
+		]
 		#leading=ft.Image(
 		#	src="icons/icon.png",
 		#	fit=ft.ImageFit.CONTAIN
