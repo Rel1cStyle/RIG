@@ -134,7 +134,7 @@ class RRIGApp(ft.UserControl):
 			if self.search_word.lower() not in image.lower(): continue
 
 			count += 1
-			print(f"- {image} ({str(count)}/{len(Images.data)})")
+			#print(f"- {image} ({str(count)}/{len(Images.data)})")
 
 			# 画像を生成
 			self.image_grid.controls.append(
