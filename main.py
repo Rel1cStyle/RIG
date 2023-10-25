@@ -3,88 +3,145 @@ import json
 import os
 import base64
 import logging
+from typing import Any, List, Optional, Union
 
 import flet as ft
+from flet_core.control import Control, OptionalNumber
+from flet_core.ref import Ref
+from flet_core.types import AnimationValue, ClipBehavior, OffsetValue, ResponsiveNumber, RotateValue, ScaleValue
+
+from app import App
 
 
 logging.basicConfig(level=logging.INFO)
 
 
-chara_list = []
-tag_list = []
+class Images():
+	data: dict = {}
+	legends: list = []
+	tags: list = []
 
-search_word = ""
-selected_tag_list = []
+	async def load():
+		print("Loading Images...")
 
-async def get_images():
-	print("Loading Images...")
+		with open("data/images.json", mode="rb") as k:
+			Images.data = json.loads(k.read())
 
-	with open("data/images.json", mode="rb") as k:
-		image_list = json.loads(k.read())
+		# キャラクター一覧を作成
+		print("- Loading Character & Tag List")
+		for k in Images.data.keys():
+			if Images.data[k]["character"] not in Images.legends: Images.legends.append(Images.data[k]["character"])
+			# タグ一覧を作成
+			for t in Images.data[k]["tags"]:
+				if t not in Images.tags: Images.tags.append(t)
+		print(f"- Done - Character: {len(Images.legends)} | Tag: {len(Images.tags)}")
 
-	# キャラクター一覧を作成
-	print("- Loading Character & Tag List")
-	for k in image_list.keys():
-		if image_list[k]["character"] not in chara_list: chara_list.append(image_list[k]["character"])
-		# タグ一覧を作成
-		for t in image_list[k]["tags"]:
-			if t not in tag_list: tag_list.append(t)
-	print(f"- Done - Character: {len(chara_list)} | Tag: {len(tag_list)}")
-
-	print(f"Done ({str(len(image_list))})")
-
-	return image_list
+		print(f"Done ({str(len(Images.data))})")
 
 
-async def main(page: ft.page):
-	page.title = "Rel1cStyle Render Image Gallery"
-	page.padding = 20
-	await page.update_async()
+class RRIGApp(ft.UserControl):
+	def __init__(self):
+		super().__init__()
 
-	image_list = await get_images()
-	print("Image Count: " + str(len(image_list)))
+		# 変数の初期化
+		self.search_word = "" # 検索ワード
+		self.selected_tags = [] # 選択中のタグ一覧
 
 
-	image_grid = ft.GridView(
-		expand=True,
-		runs_count=5,
-		max_extent=400,
-		child_aspect_ratio=1.77,
-		spacing=10,
-		run_spacing=10,
-	)
+	def build(self):
+		self.expand = True
 
-	image_grid_base = ft.Container(
-		content=image_grid,
-		alignment=ft.alignment.center,
-		expand=True
-	)
+		self.image_grid = ft.GridView(
+			runs_count=5,
+			max_extent=400,
+			child_aspect_ratio=1.77,
+			spacing=10,
+			run_spacing=10,
+			expand=True
+		)
+
+		self.image_grid_base = ft.Container(
+			content=self.image_grid,
+			alignment=ft.alignment.center,
+			expand=True
+		)
+
+
+		##### タグボックス #####
+		self.tag_box = ft.Row(
+			scroll=ft.ScrollMode.AUTO,
+			alignment=ft.MainAxisAlignment.CENTER,
+			vertical_alignment=ft.CrossAxisAlignment.START,
+			expand=False
+		)
+
+		self.tag_box_base = ft.Container(
+			content=self.tag_box,
+			alignment=ft.alignment.center_left,
+			expand=True
+		)
+
+
+		##### 検索ボックス #####
+		self.search_box = ft.TextField(
+			label="Search",
+			on_submit=self.search_box_on_submit
+		)
+
+		self.search_box_base = ft.Container(
+			content=self.search_box,
+			alignment=ft.alignment.center
+		)
+
+		# ベース部品
+		return ft.Column(
+			controls=[
+				self.search_box_base,
+				self.tag_box,
+				self.image_grid_base
+			],
+			expand=True
+		)
+
+	# タグボックス
+	async def tag_checkbox_on_change(self, e):
+		if e.control.value:
+			if e.control.label not in self.selected_tags: self.selected_tags.append(e.control.label)
+		else:
+			if e.control.label in self.selected_tags: self.selected_tags.remove(e.control.label)
+		print(f"Selected Tags: {str(self.selected_tags)}")
+		await self.load_images()
+
+	# 検索ボックス
+	async def search_box_on_submit(self, e):
+		self.search_word = e.control.value
+		await self.load_images()
 
 	# 画像の読み込み&生成
-	async def load_images():
+	async def load_images(self):
 		print("Loading...")
 
-		image_grid.controls = []
+		self.image_grid.controls = []
 		count = 0
 
-		if search_word != "" or len(selected_tag_list) >= 1: print(f"- Filtering - Word: {search_box} | Tags: {str(selected_tag_list)}")
+		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_box} | Tags: {str(self.selected_tags)}")
 
-		for image in image_list.keys():
+		for image in Images.data.keys():
 			# タグで絞り込み
-			if len(selected_tag_list) >= 1 and set(selected_tag_list).isdisjoint(image_list[image]["tags"]): continue
+			if len(self.selected_tags) >= 1 and set(self.selected_tags).isdisjoint(Images.data[image]["tags"]): continue
 
 			# 検索ワードで絞り込み
-			if search_word.lower() not in image.lower(): continue
+			if self.search_word.lower() not in image.lower(): continue
 
 			count += 1
-			print(f"- {image} ({str(count)}/{len(image_list)})")
+			print(f"- {image} ({str(count)}/{len(Images.data)})")
 
 			# 画像を生成
-			image_grid.controls.append(
+			self.image_grid.controls.append(
 				ft.Stack(
 					controls=[
 						ft.Image(
-							src_base64=image_list[image]["preview"],
+							src_base64=Images.data[image]["preview"],
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
@@ -92,7 +149,7 @@ async def main(page: ft.page):
 						ft.Row(
 							[
 								ft.Text(
-									image_list[image]["character"] + " | " + image_list[image]["skin"],
+									Images.data[image]["character"] + " | " + Images.data[image]["skin"],
 									color="white",
 									#bgcolor="black",
 									size=14,
@@ -108,77 +165,49 @@ async def main(page: ft.page):
 					]
 				)
 			)
-		await page.update_async()
+		await self.update_async()
 		print(f"Filtered Image Count: {str(count)}")
 
 	# タグの読み込み&生成
-	async def load_tags():
-		tag_box.controls = []
-		for tag in tag_list:
-			tag_box.controls.append(
+	async def load_tags(self):
+		self.tag_box.controls = []
+		for tag in Images.tags:
+			self.tag_box.controls.append(
 				ft.Checkbox(
 					label=tag,
 					value=False,
-					on_change=tag_checkbox_on_change
+					on_change=self.tag_checkbox_on_change
 				)
 			)
-		print(f"Tag Control Count: {len(tag_box.controls)}")
-		await page.update_async()
-
-	##### タグボックス #####
-	async def tag_checkbox_on_change(e):
-		global selected_tag_list
-		if e.control.value:
-			if e.control.label not in selected_tag_list: selected_tag_list.append(e.control.label)
-		else:
-			if e.control.label in selected_tag_list: selected_tag_list.remove(e.control.label)
-		print(f"Selected Tags: {str(selected_tag_list)}")
-		await load_images()
+		print(f"Tag Control Count: {len(self.tag_box.controls)}")
+		await self.update_async()
 
 
-	tag_box = ft.Row(
-		scroll=ft.ScrollMode.AUTO,
-		alignment=ft.MainAxisAlignment.CENTER,
-		vertical_alignment=ft.CrossAxisAlignment.START,
-		expand=False
+async def main(page: ft.page):
+	page.title = App.name
+	page.padding = 20
+	await page.update_async()
+
+	# 画像一覧を読み込み
+	await Images.load()
+
+	# アプリバー
+	page.appbar = ft.AppBar(
+		title=ft.Text(App.name, size=16),
+		center_title=True,
+		#leading=ft.Image(
+		#	src="icons/icon.png",
+		#	fit=ft.ImageFit.CONTAIN
+		#),
+		#leading_width=50
 	)
 
-	tag_box_base = ft.Container(
-		content=tag_box,
-		alignment=ft.alignment.center_left,
-		expand=True
-	)
+	base = RRIGApp()
 
-	##### 検索ボックス #####
-	async def search_box_on_submit(e):
-		global search_word
-		search_word = e.control.value
-		await load_images()
+	await page.add_async(base)
 
-	search_box = ft.TextField(
-		label="Search",
-		on_submit=search_box_on_submit
-	)
-
-	search_box_base = ft.Container(
-		content=search_box,
-		alignment=ft.alignment.center
-	)
-
-	##### ベース #####
-	base_column = ft.Column(
-		controls=[
-			search_box_base,
-			tag_box,
-			image_grid_base
-		],
-		expand=True
-	)
-
-	await page.add_async(base_column)
-
-	await load_tags()
-	await load_images()
+	await base.load_tags()
+	await base.load_images()
 
 
-ft.app(target=main, view=ft.AppView.WEB_BROWSER, assets_dir="assets")
+ft.app(target=main, assets_dir="assets")
