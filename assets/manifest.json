@@ -4,5 +4,6 @@
     "description": "Rel1cStyle Render Image Gallery",
     "theme_color": "black",
     "background_color": "white",
-    "display": "fullscreen"
+    "display": "fullscreen",
+    "scope": "/"
 }
