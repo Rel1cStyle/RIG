@@ -202,7 +202,7 @@ async def main(page: ft.Page):
 			# バージョン表記テキスト
 			ft.Container(
 				ft.Text(f"Branch: {App.branch}", size=12, text_align=ft.TextAlign.RIGHT),
-				padding=ft.padding.only(0, 20, 20, 0),
+				padding=ft.padding.only(0, 19, 20, 0),
 				alignment=ft.alignment.center_right,
 				expand=False
 			),
