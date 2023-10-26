@@ -201,12 +201,13 @@ async def main(page: ft.Page):
 		actions=[
 			# バージョン表記テキスト
 			ft.Container(
-				ft.Row(
-					[
-						ft.Text(f"{App.branch}.{App.commit_sha}", size=13, text_align=ft.TextAlign.RIGHT)
-					],
-					expand=True
-				),
+				ft.Text(f"Branch: {App.branch}", size=12, text_align=ft.TextAlign.RIGHT),
+				padding=ft.padding.only(0, 0, 20, 0),
+				alignment=ft.alignment.center_right,
+				expand=True
+			),
+			ft.Container(
+				ft.Text(f"Commit: {App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
 				padding=ft.padding.only(0, 0, 20, 0),
 				alignment=ft.alignment.center_right,
 				expand=True
