@@ -65,22 +65,39 @@ class RRIGApp(ft.UserControl):
 		self.image_grid_base = ft.Container(
 			content=self.image_grid,
 			alignment=ft.alignment.center,
-			expand=True
+			expand=True,
+			animate_opacity=300
 		)
 
 
 		##### タグボックス #####
-		self.tag_box = ft.Row(
-			scroll=ft.ScrollMode.AUTO,
-			alignment=ft.MainAxisAlignment.CENTER,
-			vertical_alignment=ft.CrossAxisAlignment.START,
-			expand=False
+		self.tag_box_expand = False
+
+		self.tag_box_expand_button = ft.ElevatedButton("Open", on_click=self.tag_box_expand_button_on_click)
+
+		self.tag_box = ft.ListView(
+			#scroll=ft.ScrollMode.AUTO,
+			#alignment=ft.MainAxisAlignment.CENTER,
+			#vertical_alignment=ft.CrossAxisAlignment.START,
+			spacing=1,
+			item_extent=20,
+			horizontal=False,
+			expand=True,
+			visible=False
 		)
 
-		self.tag_box_base = ft.Container(
-			content=self.tag_box,
+		self.tag_box_base = ft.Column(
+			[
+				ft.Row(
+					[
+						ft.Text("Tags", size=18),
+						self.tag_box_expand_button
+					]
+				),
+				self.tag_box # タグ一覧部品
+			],
 			alignment=ft.alignment.center_left,
-			expand=True
+			expand=False
 		)
 
 
@@ -99,13 +116,24 @@ class RRIGApp(ft.UserControl):
 		return ft.Column(
 			controls=[
 				self.search_box_base,
-				self.tag_box,
+				self.tag_box_base,
 				self.image_grid_base
 			],
 			expand=True
 		)
 
 	# タグボックス
+	async def tag_box_expand_button_on_click(self, e):
+		self.tag_box_expand = not self.tag_box_expand
+		self.tag_box.visible = self.tag_box_expand
+		self.tag_box_base.expand = self.tag_box_expand
+		self.image_grid_base.visible = not self.tag_box_expand
+		if self.tag_box_expand:
+			self.tag_box_expand_button.text = "Close"
+		else:
+			self.tag_box_expand_button.text = "Open"
+		await self.update_async()
+
 	async def tag_checkbox_on_change(self, e):
 		if e.control.value:
 			if e.control.label not in self.selected_tags: self.selected_tags.append(e.control.label)
