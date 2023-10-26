@@ -183,7 +183,7 @@ class RRIGApp(ft.UserControl):
 		await self.update_async()
 
 
-async def main(page: ft.page):
+async def main(page: ft.Page):
 	page.title = App.name
 	page.padding = 20
 	await page.update_async()
@@ -196,13 +196,7 @@ async def main(page: ft.page):
 
 	# アプリバー
 	page.appbar = ft.AppBar(
-		title=ft.Row(
-				[
-					ft.Text(App.name, size=16),
-					ft.Container(ft.Text(App.branch + "." + App.commit_sha, size=12), padding=ft.padding.only(0, 0, 20, 0))
-				],
-				expand=True
-			),
+		title=ft.Text(App.name, size=16),
 		center_title=False
 		#leading=ft.Image(
 		#	src="icons/icon.png",
@@ -210,6 +204,9 @@ async def main(page: ft.page):
 		#),
 		#leading_width=50
 	)
+
+	# バージョン表記テキスト
+	await page.add_async(ft.Container(ft.Text(App.branch + "." + App.commit_sha, size=12), padding=ft.padding.only(0, -10, 0, 0), alignment=ft.alignment.center_right))
 
 	base = RRIGApp()
 
