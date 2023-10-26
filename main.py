@@ -196,16 +196,14 @@ async def main(page: ft.page):
 
 	# アプリバー
 	page.appbar = ft.AppBar(
-		title=ft.Text(App.name, size=16),
-		center_title=False,
-		actions=[
-			ft.Row(
+		title=ft.Row(
 				[
-					ft.Container(content=ft.Text(App.branch + "." + App.commit_sha, size=12), padding=ft.padding.only(0, 0, 20, 0))
+					ft.Text(App.name, size=16),
+					ft.Container(ft.Text(App.branch + "." + App.commit_sha, size=12), padding=ft.padding.only(0, 0, 20, 0))
 				],
 				expand=True
-			)
-		]
+			),
+		center_title=False
 		#leading=ft.Image(
 		#	src="icons/icon.png",
 		#	fit=ft.ImageFit.CONTAIN
