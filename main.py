@@ -197,16 +197,25 @@ async def main(page: ft.Page):
 	# アプリバー
 	page.appbar = ft.AppBar(
 		title=ft.Text(App.name, size=16),
-		center_title=False
+		center_title=False,
+		actions=[
+			# バージョン表記テキスト
+			ft.Container(
+				ft.Row(
+					[
+						ft.Text(f"{App.branch}.{App.commit_sha}", size=12, width=100, text_align=ft.TextAlign.RIGHT)
+					]
+				),
+				padding=ft.padding.only(0, 0, 20, 0),
+				alignment=ft.alignment.center_right
+			)
+		]
 		#leading=ft.Image(
 		#	src="icons/icon.png",
 		#	fit=ft.ImageFit.CONTAIN
 		#),
 		#leading_width=50
 	)
-
-	# バージョン表記テキスト
-	await page.add_async(ft.Container(ft.Text(App.branch + "." + App.commit_sha, size=12), padding=ft.padding.only(0, -10, 0, 0), alignment=ft.alignment.center_right))
 
 	base = RRIGApp()
 
