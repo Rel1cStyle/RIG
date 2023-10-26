@@ -203,7 +203,7 @@ async def main(page: ft.Page):
 			ft.Container(
 				ft.Row(
 					[
-						ft.Text(f"{App.branch}.{App.commit_sha}", size=12, width=100, text_align=ft.TextAlign.RIGHT)
+						ft.Text(f"{App.branch}.{App.commit_sha}", size=12, width=200, text_align=ft.TextAlign.RIGHT)
 					]
 				),
 				padding=ft.padding.only(0, 0, 20, 0),
