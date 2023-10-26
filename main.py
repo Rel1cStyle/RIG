@@ -34,6 +34,8 @@ class Images():
 			# タグ一覧を作成
 			for t in Images.data[k]["tags"]:
 				if t not in Images.tags: Images.tags.append(t)
+			# タグ一覧を並べ替え
+			Images.tags.sort()
 		print(f"- Done - Character: {len(Images.legends)} | Tag: {len(Images.tags)}")
 
 		print(f"Done ({str(len(Images.data))})")
