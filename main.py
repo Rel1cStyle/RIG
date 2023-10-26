@@ -204,13 +204,13 @@ async def main(page: ft.Page):
 				ft.Text(f"Branch: {App.branch}", size=12, text_align=ft.TextAlign.RIGHT),
 				padding=ft.padding.only(0, 0, 20, 0),
 				alignment=ft.alignment.center_right,
-				expand=True
+				expand=False
 			),
 			ft.Container(
 				ft.Text(f"Commit: {App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
 				padding=ft.padding.only(0, 0, 20, 0),
 				alignment=ft.alignment.center_right,
-				expand=True
+				expand=False
 			)
 		]
 		#leading=ft.Image(
