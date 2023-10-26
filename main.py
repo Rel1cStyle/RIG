@@ -202,7 +202,8 @@ async def main(page: ft.page):
 			ft.Row(
 				[
 					ft.Container(content=ft.Text(App.branch + "." + App.commit_sha, size=12), padding=ft.padding.only(0, 0, 20, 0))
-				]
+				],
+				expand=True
 			)
 		]
 		#leading=ft.Image(
