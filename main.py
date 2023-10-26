@@ -149,7 +149,7 @@ class RRIGApp(ft.UserControl):
 						ft.Row(
 							[
 								ft.Text(
-									Images.data[image]["character"] + " | " + Images.data[image]["skin"],
+									Images.data[image]["character"] + " | " + Images.data[image]["skin"] + " - " + Images.data[image]["number"],
 									color="white",
 									#bgcolor="black",
 									size=14,
