@@ -19,23 +19,28 @@ logging.basicConfig(level=logging.INFO)
 class Images():
 	data: dict = {}
 	legends: list = []
-	tags: list = []
+	tags: dict = {}
 
 	async def load():
 		print("Loading Images...")
 
+		tag_base = {"count": 0}
+
 		with open("data/images.json", mode="rb") as k:
 			Images.data = json.loads(k.read())
 
-		# キャラクター一覧を作成
 		print("- Loading Character & Tag List")
 		for k, v in Images.data.items():
+			# レジェンド一覧を作成
 			if v["character"] not in Images.legends: Images.legends.append(v["character"])
 			# タグ一覧を作成
 			for t in v["tags"]:
-				if t not in Images.tags: Images.tags.append(t)
-			# タグ一覧を並べ替え
-			Images.tags.sort()
+				if t not in Images.tags: Images.tags[t] = tag_base.copy() # タグが存在しない場合は新たに追加する
+				Images.tags[t]["count"] += 1 # タグが存在する場合は個数のカウントを増やす
+		# レジェンド一覧を名前順に並べ替え
+		Images.legends.sort()
+		# タグ一覧を名前順に並べ替え
+		Images.tags = dict(sorted(Images.tags.items()))
 		print(f"- Done - Character: {len(Images.legends)} | Tag: {len(Images.tags)}")
 
 		print(f"Done ({str(len(Images.data))})")
@@ -131,11 +136,20 @@ class RRIGApp(ft.UserControl):
 			enable (bool, optional): 対象のタグを有効にするか無効にするか None の場合は切り替える
 		"""
 		if enable == None: enable = tag_name not in self.selected_tags
+		
 		if enable:
 			if tag_name not in self.selected_tags: self.selected_tags.append(tag_name)
 		else:
 			if tag_name in self.selected_tags: self.selected_tags.remove(tag_name)
+
+		# タグ一覧の部品のチェック状態を更新する
+		for t in self.tag_box.controls:
+			if tag_name == t.key:
+				t.value = enable
+				break
+		
 		print(f"Selected Tags: {str(self.selected_tags)}")
+		
 		await self.load_images()
 
 	async def tag_box_expand_button_on_click(self, e):
@@ -150,13 +164,16 @@ class RRIGApp(ft.UserControl):
 		await self.update_async()
 
 	async def tag_checkbox_on_change(self, e):
-		await self.switch_tag_selection(e.control.label, e.control.value)
+		await self.switch_tag_selection(e.control.key, e.control.value)
 		await self.load_images()
 
 	# 検索ボックス
 	async def search_box_on_submit(self, e):
 		self.search_word = e.control.value
 		await self.load_images()
+
+	async def image_tag_button_on_click(self, e):
+		await self.switch_tag_selection(e.control.text)
 
 	# 画像の読み込み&生成
 	async def load_images(self):
@@ -168,8 +185,11 @@ class RRIGApp(ft.UserControl):
 		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_box} | Tags: {str(self.selected_tags)}")
 
 		for k, v in Images.data.items():
+			# ループ対象の画像に選択中のタグのいずれかが含まれているかチェック
+			tag_found = not set(self.selected_tags).isdisjoint(v["tags"])
+
 			# タグで絞り込み
-			if len(self.selected_tags) >= 1 and set(self.selected_tags).isdisjoint(v["tags"]): continue
+			if len(self.selected_tags) >= 1 and not tag_found: continue
 
 			# 検索ワードで絞り込み
 			if self.search_word.lower() not in k.lower(): continue
@@ -177,10 +197,40 @@ class RRIGApp(ft.UserControl):
 			count += 1
 			#print(f"- {image} ({str(count)}/{len(Images.data)})")
 
+			# タグボタン部品を生成
+			tag_buttons = []
+			for tag in v["tags"]:
+				tb = ft.Container(
+						ft.Text(
+							spans=[
+								ft.TextSpan(
+									tag,
+									style=ft.TextStyle(
+										14
+									),
+									on_click=self.image_tag_button_on_click
+								)
+							]
+						),
+						border_radius=ft.border_radius.all(14),
+						padding=ft.padding.only(6, 4, 6, 4)
+					)
+				# 選択中のタグは色を変えて枠線をつける
+				if tag in self.selected_tags:
+					tb.bgcolor = ft.colors.BLACK
+					tb.border = ft.border.all(2, color=ft.colors.WHITE)
+				else:
+					tb.bgcolor = ft.colors.BLACK54
+				# タグ部品一覧へ追加
+				tag_buttons.append(
+					tb
+				)
+
 			# 画像を生成
 			self.image_grid.controls.append(
 				ft.Stack(
 					controls=[
+						# 画像
 						ft.Image(
 							src_base64=v["preview"],
 							fit=ft.ImageFit.CONTAIN,
@@ -203,6 +253,14 @@ class RRIGApp(ft.UserControl):
 							left=5,
 							right=5,
 							bottom=5
+						),
+						# タグ
+						ft.Row(
+							tag_buttons,
+							alignment=ft.MainAxisAlignment.START,
+							left=5,
+							right=5,
+							top=5
 						)
 					]
 				)
@@ -213,10 +271,11 @@ class RRIGApp(ft.UserControl):
 	# タグの読み込み&生成
 	async def load_tags(self):
 		self.tag_box.controls = []
-		for tag in Images.tags:
+		for k, v in Images.tags.items():
 			self.tag_box.controls.append(
 				ft.Checkbox(
-					label=tag,
+					key=k,
+					label=k + " (" + str(v["count"]) + ")",
 					value=False,
 					on_change=self.tag_checkbox_on_change
 				)
