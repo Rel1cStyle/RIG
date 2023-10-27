@@ -16,6 +16,11 @@ from app import App
 logging.basicConfig(level=logging.INFO)
 
 
+def lists_match(l1: list, l2: list) -> bool:
+	if len(l1) != len(l2):
+		return False
+	return all(x == y and type(x) == type(y) for x, y in zip(l1, l2))
+
 class Images():
 	data: dict = {}
 	legends: list = []
@@ -185,11 +190,13 @@ class RRIGApp(ft.UserControl):
 		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_box.value} | Tags: {str(self.selected_tags)}")
 
 		for k, v in Images.data.items():
-			# ループ対象の画像に選択中のタグのいずれかが含まれているかチェック
-			tag_found = not set(self.selected_tags).isdisjoint(v["tags"])
-
 			# タグで絞り込み
-			if len(self.selected_tags) >= 1 and not tag_found: continue
+			if len(self.selected_tags) == 1: # 選択されたタグが1つのみの場合は、そのタグが含まれていない画像を除外
+				if set(self.selected_tags).isdisjoint(v["tags"]):
+					continue
+			elif len(self.selected_tags) >= 2: # 選択されたタグが2つ以上の場合は、選択されたタグのうち一つでも含まれていない画像を除外
+				if not set(self.selected_tags).issubset(v["tags"]):
+					continue 
 
 			# 検索ワードで絞り込み
 			if self.search_word.lower() not in k.lower(): continue
