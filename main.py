@@ -29,10 +29,10 @@ class Images():
 
 		# キャラクター一覧を作成
 		print("- Loading Character & Tag List")
-		for k in Images.data.keys():
-			if Images.data[k]["character"] not in Images.legends: Images.legends.append(Images.data[k]["character"])
+		for k, v in Images.data.items():
+			if v["character"] not in Images.legends: Images.legends.append(v["character"])
 			# タグ一覧を作成
-			for t in Images.data[k]["tags"]:
+			for t in v["tags"]:
 				if t not in Images.tags: Images.tags.append(t)
 			# タグ一覧を並べ替え
 			Images.tags.sort()
@@ -123,6 +123,21 @@ class RRIGApp(ft.UserControl):
 		)
 
 	# タグボックス
+	async def switch_tag_selection(self, tag_name: str, enable: bool=None):
+		"""タグの有効/無効を切り替えます。
+
+		Args:
+			tag_name (str): 切り替えるタグの名前
+			enable (bool, optional): 対象のタグを有効にするか無効にするか None の場合は切り替える
+		"""
+		if enable == None: enable = tag_name not in self.selected_tags
+		if enable:
+			if tag_name not in self.selected_tags: self.selected_tags.append(tag_name)
+		else:
+			if tag_name in self.selected_tags: self.selected_tags.remove(tag_name)
+		print(f"Selected Tags: {str(self.selected_tags)}")
+		await self.load_images()
+
 	async def tag_box_expand_button_on_click(self, e):
 		self.tag_box_expand = not self.tag_box_expand
 		self.tag_box.visible = self.tag_box_expand
@@ -135,11 +150,7 @@ class RRIGApp(ft.UserControl):
 		await self.update_async()
 
 	async def tag_checkbox_on_change(self, e):
-		if e.control.value:
-			if e.control.label not in self.selected_tags: self.selected_tags.append(e.control.label)
-		else:
-			if e.control.label in self.selected_tags: self.selected_tags.remove(e.control.label)
-		print(f"Selected Tags: {str(self.selected_tags)}")
+		await self.switch_tag_selection(e.control.label, e.control.value)
 		await self.load_images()
 
 	# 検索ボックス
@@ -156,12 +167,12 @@ class RRIGApp(ft.UserControl):
 
 		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_box} | Tags: {str(self.selected_tags)}")
 
-		for image in Images.data.keys():
+		for k, v in Images.data.items():
 			# タグで絞り込み
-			if len(self.selected_tags) >= 1 and set(self.selected_tags).isdisjoint(Images.data[image]["tags"]): continue
+			if len(self.selected_tags) >= 1 and set(self.selected_tags).isdisjoint(v["tags"]): continue
 
 			# 検索ワードで絞り込み
-			if self.search_word.lower() not in image.lower(): continue
+			if self.search_word.lower() not in k.lower(): continue
 
 			count += 1
 			#print(f"- {image} ({str(count)}/{len(Images.data)})")
@@ -171,15 +182,16 @@ class RRIGApp(ft.UserControl):
 				ft.Stack(
 					controls=[
 						ft.Image(
-							src_base64=Images.data[image]["preview"],
+							src_base64=v["preview"],
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
 						),
+						# 画像情報(名前など)
 						ft.Row(
 							[
 								ft.Text(
-									Images.data[image]["character"] + " | " + Images.data[image]["skin"] + " - " + Images.data[image]["number"],
+									v["character"] + " | " + v["skin"] + " - " + v["number"],
 									color="white",
 									#bgcolor="black",
 									size=14,
