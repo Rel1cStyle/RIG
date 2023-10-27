@@ -182,7 +182,7 @@ class RRIGApp(ft.UserControl):
 		self.image_grid.controls = []
 		count = 0
 
-		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_box} | Tags: {str(self.selected_tags)}")
+		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_box.value} | Tags: {str(self.selected_tags)}")
 
 		for k, v in Images.data.items():
 			# ループ対象の画像に選択中のタグのいずれかが含まれているかチェック
