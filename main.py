@@ -220,7 +220,7 @@ class RRIGApp(ft.UserControl):
 							]
 						),
 						border_radius=ft.border_radius.all(14),
-						padding=ft.padding.only(6, 4, 6, 4)
+						padding=ft.padding.only(8, 4, 8, 4)
 					)
 				# 選択中のタグは色を変えて枠線をつける
 				if tag in self.selected_tags:
