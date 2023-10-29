@@ -81,9 +81,16 @@ class RRIGApp(ft.UserControl):
 
 
 		##### タグボックス #####
-		self.tag_box_expand = False
+		self.legend_box = ft.ListView(
+			spacing=1,
+			item_extent=20,
+			horizontal=False,
+			expand=True,
+			visible=False
+		)
 
-		self.tag_box_expand_button = ft.ElevatedButton("Open", on_click=self.tag_box_expand_button_on_click)
+		self.tag_box_expand = False
+		self.tag_box_expand_button = ft.ElevatedButton("Filter", on_click=self.tag_box_expand_button_on_click)
 
 		self.tag_box = ft.ListView(
 			#scroll=ft.ScrollMode.AUTO,
@@ -96,15 +103,21 @@ class RRIGApp(ft.UserControl):
 			visible=False
 		)
 
+		self.filter_control_box = ft.Row(
+			[
+				self.legend_box,
+				self.tag_box # タグ一覧部品
+			]
+		)
+
 		self.tag_box_base = ft.Column(
 			[
 				ft.Row(
 					[
-						ft.Text("Tags", size=18),
 						self.tag_box_expand_button
 					]
 				),
-				self.tag_box # タグ一覧部品
+				self.filter_control_box
 			],
 			alignment=ft.alignment.center_left,
 			expand=False
@@ -131,6 +144,10 @@ class RRIGApp(ft.UserControl):
 			],
 			expand=True
 		)
+
+	# レジェンドボックス
+	async def legend_box_expand_button_on_click():
+		pass
 
 	# タグボックス
 	async def switch_tag_selection(self, tag_name: str, enable: bool=None):
@@ -159,13 +176,13 @@ class RRIGApp(ft.UserControl):
 
 	async def tag_box_expand_button_on_click(self, e):
 		self.tag_box_expand = not self.tag_box_expand
-		self.tag_box.visible = self.tag_box_expand
+		self.filter_control_box.visible = self.tag_box_expand
 		self.tag_box_base.expand = self.tag_box_expand
 		self.image_grid_base.visible = not self.tag_box_expand
 		if self.tag_box_expand:
 			self.tag_box_expand_button.text = "Close"
 		else:
-			self.tag_box_expand_button.text = "Open"
+			self.tag_box_expand_button.text = "Filter"
 		await self.update_async()
 
 	async def tag_checkbox_on_change(self, e):
@@ -195,7 +212,7 @@ class RRIGApp(ft.UserControl):
 				if set(self.selected_tags).isdisjoint(v["tags"]):
 					continue
 			elif len(self.selected_tags) >= 2: # 選択されたタグが2つ以上の場合は、選択されたタグのうち一つでも含まれていない画像を除外
-				if not set(self.selected_tags).issubset(v["tags"]):
+				if not set(v["tags"]).issubset(self.selected_tags):
 					continue 
 
 			# 検索ワードで絞り込み
