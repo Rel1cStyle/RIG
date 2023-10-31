@@ -277,9 +277,7 @@ class RRIGApp(ft.UserControl):
 	async def reset_skin_selection(self):
 		"""スキンの選択状態をリセットします。"""
 		self.selected_skins = []
-		for c in self.skin_box.controls:
-			c.value = False
-		await self.update_async()
+		await self.load_skins(self.selected_legends)
 
 
 	# タグボックス
