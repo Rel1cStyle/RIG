@@ -119,14 +119,24 @@ class RRIGApp(ft.UserControl):
 			[
 				ft.Column(
 					[
-						ft.Text("Legends", style=ft.TextThemeStyle.TITLE_LARGE),
+						ft.Row(
+							[
+								ft.Text("Legends", style=ft.TextThemeStyle.TITLE_LARGE),
+								ft.FilledTonalButton("Reset", on_click=self.legend_reset_button_on_click)
+							]
+						),
 						self.legend_box # レジェンド一覧
 					],
 					expand=True
 				),
 				ft.Column(
 					[
-						ft.Text("Skin", style=ft.TextThemeStyle.TITLE_LARGE),
+						ft.Row(
+							[
+								ft.Text("Skin", style=ft.TextThemeStyle.TITLE_LARGE),
+								ft.FilledTonalButton("Reset", on_click=self.skin_reset_button_on_click)
+							]
+						),
 						self.skin_box # タグ一覧
 					],
 					expand=True
@@ -152,7 +162,12 @@ class RRIGApp(ft.UserControl):
 			[
 				ft.Column(
 					[
-						ft.Text("Tag", style=ft.TextThemeStyle.TITLE_LARGE),
+						ft.Row(
+							[
+								ft.Text("Tag", style=ft.TextThemeStyle.TITLE_LARGE),
+								ft.FilledTonalButton("Reset", on_click=self.tag_reset_button_on_click)
+							]
+						),
 						self.tag_box # タグ一覧
 					],
 					expand=True
@@ -226,7 +241,15 @@ class RRIGApp(ft.UserControl):
 
 		# スキン一覧を更新する
 		await self.load_skins(self.selected_legends)
-		await self.load_images()
+
+	async def reset_legend_selection(self):
+		"""レジェンドの選択状態をリセットします。"""
+		self.selected_legends = []
+		for c in self.legend_box.controls:
+			c.value = False
+		await self.reset_skin_selection() # スキンの選択状態もリセットする
+		await self.update_async()
+
 
 	# スキンボックス
 	async def switch_skin_selection(self, skin_name: str, enable: bool=None):
@@ -250,8 +273,14 @@ class RRIGApp(ft.UserControl):
 				break
 		
 		print(f"Selected Skins: {str(self.selected_skins)}")
-		
-		await self.load_images()
+
+	async def reset_skin_selection(self):
+		"""スキンの選択状態をリセットします。"""
+		self.selected_skins = []
+		for c in self.skin_box.controls:
+			c.value = False
+		await self.update_async()
+
 
 	# タグボックス
 	async def switch_tag_selection(self, tag_name: str, enable: bool=None):
@@ -275,8 +304,13 @@ class RRIGApp(ft.UserControl):
 				break
 		
 		print(f"Selected Tags: {str(self.selected_tags)}")
-		
-		await self.load_images()
+
+	async def reset_tag_selection(self):
+		"""タグの選択状態をリセットします。"""
+		self.selected_tags = []
+		for c in self.tag_box.controls:
+			c.value = False
+		await self.update_async()
 
 	# レジェンド&スキン選択部品の表示切り替え
 	async def filter_box_expand_button_on_click(self, e):
@@ -298,6 +332,7 @@ class RRIGApp(ft.UserControl):
 			self.filter_box_expand_button.text = "Close"
 		else:
 			self.filter_box_expand_button.text = "Filter"
+			await self.load_images() # 画像一覧を更新する
 		await self.update_async()
 
 	# タグ選択部品の表示切り替え
@@ -318,17 +353,30 @@ class RRIGApp(ft.UserControl):
 			self.tag_box_expand_button.text = "Close"
 		else:
 			self.tag_box_expand_button.text = "Tag"
+			await self.load_images() # 画像一覧を更新する
 		await self.update_async()
 
 
 	async def legend_checkbox_on_change(self, e): # レジェンドが選択されたとき
 		await self.switch_legend_selection(e.control.key, e.control.value)
 
+	async def legend_reset_button_on_click(self, e): # レジェンドのリセットボタンがクリックされたとき
+		await self.reset_legend_selection()
+
+
 	async def skin_checkbox_on_change(self, e): # スキンが選択されたとき
 		await self.switch_skin_selection(e.control.key, e.control.value)
 
+	async def skin_reset_button_on_click(self, e): # スキンのリセットボタンがクリックされたとき
+		await self.reset_skin_selection()
+
+
 	async def tag_checkbox_on_change(self, e): # タグが選択されたとき
 		await self.switch_tag_selection(e.control.key, e.control.value)
+
+	async def tag_reset_button_on_click(self, e): # タグのリセットボタンがクリックされたとき
+		await self.reset_tag_selection()
+
 
 	# 検索ボックス
 	async def search_box_on_submit(self, e):
