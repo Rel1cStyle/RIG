@@ -383,6 +383,7 @@ class RRIGApp(ft.UserControl):
 
 	async def image_tag_button_on_click(self, e):
 		await self.switch_tag_selection(e.control.text)
+		await self.load_images()
 
 	# 画像の読み込み&生成
 	async def load_images(self):
