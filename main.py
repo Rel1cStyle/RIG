@@ -4,6 +4,8 @@ import os
 import base64
 import logging
 from typing import Any, List, Optional, Union
+import requests
+import pyodide_http
 
 import flet as ft
 from flet_core.control import Control, OptionalNumber
@@ -14,6 +16,8 @@ from app import App
 
 
 logging.basicConfig(level=logging.INFO)
+
+pyodide_http.patch_requests()
 
 
 def lists_match(l1: list, l2: list) -> bool:
@@ -33,8 +37,10 @@ class Images():
 		legend_base = {"count": 0, "skins": None}
 		tag_base = {"count": 0}
 
-		with open("data/images.json", mode="rb") as k:
-			Images.data = json.loads(k.read())
+		#with open("data/images.json", mode="rb") as k:
+		#	Images.data = json.loads(k.read())
+		res = requests.get("https://rel1cstylefig-1-c7867224.deta.app/list")
+		Images.data = res.json()
 
 		print("- Loading Legends & Tag List")
 		for k, v in Images.data.items():
@@ -454,7 +460,7 @@ class RRIGApp(ft.UserControl):
 					controls=[
 						# 画像
 						ft.Image(
-							src="https://raw.githubusercontent.com/Rel1cStyle/RIG/main/data/images/" + k,
+							src="https://rel1cstylefig-1-c7867224.deta.app/preview/" + k,
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
