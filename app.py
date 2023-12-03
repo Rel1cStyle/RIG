@@ -1,7 +1,7 @@
 from os import path
 
 class App():
-	name = "Rel1cStyle Render Image Gallery"
+	name = "Rel1cStyle RIG"
 
 	version = "1.0"
 
