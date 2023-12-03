@@ -454,7 +454,7 @@ class RRIGApp(ft.UserControl):
 					controls=[
 						# 画像
 						ft.Image(
-							src="data/images/" + k,
+							src="https://raw.githubusercontent.com/Rel1cStyle/RIG/main/data/images/" + k,
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
