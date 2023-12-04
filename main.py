@@ -580,7 +580,7 @@ async def main(page: ft.Page):
 		actions=[
 			# バージョン表記テキスト
 			ft.Container(
-				ft.Text(f"Branch: {App.branch} Commit: {App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
+				ft.Text(f"Branch: {App.branch} Version: {App.version}.{App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
 				padding=ft.padding.only(0, 0, 20, 0),
 				alignment=ft.alignment.center_right,
 				expand=False
