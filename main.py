@@ -387,6 +387,11 @@ class RRIGApp(ft.UserControl):
 		self.search_word = e.control.value
 		await self.load_images()
 
+	# 画像ダウンロードボタンクリック時
+	async def image_download_button_on_click(self, e):
+		pass
+
+	# 画像タグクリック時
 	async def image_tag_button_on_click(self, e):
 		await self.switch_tag_selection(e.control.text)
 		await self.load_images()
@@ -454,6 +459,18 @@ class RRIGApp(ft.UserControl):
 					tb
 				)
 
+			# ダウンロードボタン
+			dl_button = ft.IconButton(
+				ft.icons.DOWNLOAD,
+				url=v["url"],
+				key=k,
+				style=ft.ButtonStyle(
+					color=ft.colors.WHITE,
+					bgcolor=ft.colors.BLACK54
+				),
+				on_click=self.image_download_button_on_click
+			)
+
 			# 画像を生成
 			self.image_grid.controls.append(
 				ft.Stack(
@@ -465,20 +482,22 @@ class RRIGApp(ft.UserControl):
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
 						),
-						# 画像情報(名前など)
 						ft.Row(
 							[
+								# 画像情報テキスト
 								ft.Text(
 									v["character"] + " | " + v["skin"] + " - " + v["number"],
 									color="white",
 									#bgcolor="black",
 									size=14,
 									weight="regular",
-									opacity=0.7
-								)
+									opacity=0.7,
+								),
+								dl_button
 							],
-							alignment=ft.MainAxisAlignment.CENTER,
-							left=5,
+							alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+							vertical_alignment=ft.CrossAxisAlignment.CENTER,
+							left=17,
 							right=5,
 							bottom=5
 						),
@@ -493,6 +512,9 @@ class RRIGApp(ft.UserControl):
 					]
 				)
 			)
+
+			# URLが設定されていない画像の場合はダウンロードボタンを隠す
+			dl_button.visible = (v["url"] != "")
 
 		# 検索結果テキストを更新
 		self.search_result_text.value = f"Result: {str(count)}"
