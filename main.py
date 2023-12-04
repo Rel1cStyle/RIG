@@ -496,10 +496,10 @@ class RRIGApp(ft.UserControl):
 								dl_button
 							],
 							alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-							vertical_alignment=ft.CrossAxisAlignment.CENTER,
+							vertical_alignment=ft.CrossAxisAlignment.END,
 							left=10,
-							right=5,
-							bottom=5
+							right=10,
+							bottom=10
 						),
 						# タグ
 						ft.Row(
