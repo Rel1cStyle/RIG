@@ -497,7 +497,7 @@ class RRIGApp(ft.UserControl):
 							],
 							alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
 							vertical_alignment=ft.CrossAxisAlignment.CENTER,
-							left=17,
+							left=10,
 							right=5,
 							bottom=5
 						),
