@@ -523,7 +523,8 @@ class RRIGApp(ft.UserControl):
 
 		for l in legends:
 			for k, v in Images.legends[l]["skins"].items():
-				if k not in skins: skins[k] = v
+				if k not in skins: skins[k] = v # スキンを追加する
+				else: skins[k]["count"] += v["count"] # すでにスキンがリストにある場合はカウントを増やす
 
 		# スキン名一覧を名前順に並べ替え
 		skins = dict(sorted(skins.items()))
