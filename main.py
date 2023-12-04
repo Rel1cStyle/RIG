@@ -462,7 +462,7 @@ class RRIGApp(ft.UserControl):
 			# ダウンロードボタン
 			dl_button = ft.IconButton(
 				ft.icons.DOWNLOAD,
-				url=v["url"],
+				url="https://rel1cstylefig-1-c7867224.deta.app/download/" + k,
 				key=k,
 				style=ft.ButtonStyle(
 					color=ft.colors.WHITE,
