@@ -80,10 +80,10 @@ class RRIGApp(ft.UserControl):
 		self.selected_skins = [] # 選択中のスキン一覧
 		self.selected_tags = [] # 選択中のタグ一覧
 
-
 	def build(self):
 		self.expand = True
 
+		##### 画像タイル #####
 		self.image_grid = ft.GridView(
 			runs_count=5,
 			max_extent=400,
@@ -99,7 +99,6 @@ class RRIGApp(ft.UserControl):
 			expand=True,
 			animate_opacity=300
 		)
-
 
 		##### フィルターボックス #####
 		self.filter_box_expand = False
@@ -389,7 +388,7 @@ class RRIGApp(ft.UserControl):
 
 	# 画像ダウンロードボタンクリック時
 	async def image_download_button_on_click(self, e):
-		pass
+		await self.page.go_async("/image/" + e.control.key)
 
 	# 画像タグクリック時
 	async def image_tag_button_on_click(self, e):
@@ -462,7 +461,7 @@ class RRIGApp(ft.UserControl):
 			# ダウンロードボタン
 			dl_button = ft.IconButton(
 				ft.icons.DOWNLOAD,
-				url=App.api_url + "/image/download/" + k,
+				#url=App.api_url + "/image/download/" + k,
 				key=k,
 				style=ft.ButtonStyle(
 					color=ft.colors.WHITE,
@@ -587,42 +586,89 @@ class RRIGApp(ft.UserControl):
 async def main(page: ft.Page):
 	page.title = App.name
 	page.padding = 20
-	await page.update_async()
 
 	print("Version: " + App.version)
 	print("Commit: " + App.commit_sha)
 
-	# 画像一覧を読み込み
+	##### ページルーティング #####
+	async def image_back_button_on_click(e):
+		await page.go_async("/")
+
+	# ルート変更イベント
+	async def route_change(e: ft.RouteChangeEvent):
+		troute = ft.TemplateRoute(e.route)
+		page.views.clear()
+
+		# メインビュー
+		main_ctrl = RRIGApp()
+		main_view = ft.View(
+			"/",
+			[
+				main_ctrl
+			],
+			# アプリバー
+			ft.AppBar(
+				title=ft.Text(App.name, size=16),
+				center_title=False,
+				actions=[
+					# バージョン表記テキスト
+					ft.Container(
+						ft.Text(f"Version: {App.version}.{App.commit_sha}\nBranch: {App.branch}", size=12, text_align=ft.TextAlign.RIGHT),
+						padding=ft.padding.only(0, 0, 20, 0),
+						alignment=ft.alignment.center_right,
+						expand=False
+					)
+				]
+				#leading=ft.Image(
+				#	src="icons/icon.png",
+				#	fit=ft.ImageFit.CONTAIN
+				#),
+				#leading_width=50
+			)
+		)
+		page.views.append(
+			main_view
+		)
+		#main_ctrl.update()
+
+		# ダウンロードクッションビュー
+		if troute.match("/image/:name"):
+			page.views.append(
+				ft.View(
+					"/image/" + troute.name,
+					[
+						ft.FilledButton("Back", on_click=image_back_button_on_click),
+						ft.Text("Image: " + troute.name)
+					]
+				)
+			)
+		# メインビューの初回読み込み
+		else:
+			await page.update_async()
+			await main_ctrl.load_legends()
+			await main_ctrl.load_skins()
+			await main_ctrl.load_tags()
+			await main_ctrl.load_images()
+
+		await page.update_async()
+
+	# ルートポップイベント
+	def view_pop(view):
+		page.views.pop()
+		top_view = page.views[-1]
+		page.go(top_view.route)
+
+	# ページルーティングのイベント定義
+	page.on_route_change = route_change
+	page.on_view_pop = view_pop
+
+	# 画像一覧を読み込み (APIから取得)
 	await Images.load()
 
-	# アプリバー
-	page.appbar = ft.AppBar(
-		title=ft.Text(App.name, size=16),
-		center_title=False,
-		actions=[
-			# バージョン表記テキスト
-			ft.Container(
-				ft.Text(f"Version: {App.version}.{App.commit_sha}\nBranch: {App.branch}", size=12, text_align=ft.TextAlign.RIGHT),
-				padding=ft.padding.only(0, 0, 20, 0),
-				alignment=ft.alignment.center_right,
-				expand=False
-			)
-		]
-		#leading=ft.Image(
-		#	src="icons/icon.png",
-		#	fit=ft.ImageFit.CONTAIN
-		#),
-		#leading_width=50
-	)
+	# ルートページへ移動
+	await page.go_async("/")
 
-	base = RRIGApp()
-
-	await page.add_async(base)
-
-	await base.load_legends()
-	await base.load_skins()
-	await base.load_tags()
-	await base.load_images()
+	#await page.update_async()
 
 
-ft.app(target=main, assets_dir="assets")
+ft.app(target=main, assets_dir="assets", port=8550)
