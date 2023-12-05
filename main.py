@@ -626,6 +626,8 @@ async def main(page: ft.Page):
 	async def route_change(e: ft.RouteChangeEvent):
 		troute = ft.TemplateRoute(e.route)
 
+		print("Route: " + troute.route)
+
 		if troute.match("/"):
 			await page.go_async("/")
 
@@ -646,7 +648,8 @@ async def main(page: ft.Page):
 		await page.update_async()
 
 	# ルートポップイベント
-	async def view_pop(view):
+	async def view_pop(view: ft.ViewPopEvent):
+		print("Pop view: " + view.target)
 		page.views.pop()
 		if len(page.views) > 1:
 			await page.update_async()
@@ -661,7 +664,7 @@ async def main(page: ft.Page):
 	await Images.load()
 
 	# ルートページへ移動
-	await page.go_async("/")
+	#await page.go_async("/")
 
 	# メインビューの初回読み込み
 	await main_ctrl.load_legends()
