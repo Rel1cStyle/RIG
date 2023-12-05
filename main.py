@@ -590,6 +590,34 @@ async def main(page: ft.Page):
 	print("Version: " + App.version)
 	print("Commit: " + App.commit_sha)
 
+	# アプリバー
+	appbar = ft.AppBar(
+		title=ft.Text(App.name, size=16),
+		center_title=False,
+		actions=[
+			# バージョン表記テキスト
+			ft.Container(
+				ft.Text(f"Version: {App.version}.{App.commit_sha}\nBranch: {App.branch}", size=12, text_align=ft.TextAlign.RIGHT),
+				padding=ft.padding.only(0, 0, 20, 0),
+				alignment=ft.alignment.center_right,
+				expand=False
+			)
+		]
+		#leading=ft.Image(
+		#	src="icons/icon.png",
+		#	fit=ft.ImageFit.CONTAIN
+		#),
+		#leading_width=50
+	)
+
+	# アプリバー
+	page.appbar = appbar
+	page.controls.append(appbar)
+	# メインビュー
+	main_ctrl = RRIGApp()
+	page.controls.append(main_ctrl)
+	await page.update_async()
+
 	##### ページルーティング #####
 	async def image_back_button_on_click(e):
 		await page.go_async("/")
@@ -597,39 +625,6 @@ async def main(page: ft.Page):
 	# ルート変更イベント
 	async def route_change(e: ft.RouteChangeEvent):
 		troute = ft.TemplateRoute(e.route)
-		page.views.clear()
-
-		# メインビュー
-		main_ctrl = RRIGApp()
-		main_view = ft.View(
-			"/",
-			[
-				main_ctrl
-			],
-			# アプリバー
-			ft.AppBar(
-				title=ft.Text(App.name, size=16),
-				center_title=False,
-				actions=[
-					# バージョン表記テキスト
-					ft.Container(
-						ft.Text(f"Version: {App.version}.{App.commit_sha}\nBranch: {App.branch}", size=12, text_align=ft.TextAlign.RIGHT),
-						padding=ft.padding.only(0, 0, 20, 0),
-						alignment=ft.alignment.center_right,
-						expand=False
-					)
-				]
-				#leading=ft.Image(
-				#	src="icons/icon.png",
-				#	fit=ft.ImageFit.CONTAIN
-				#),
-				#leading_width=50
-			)
-		)
-		page.views.append(
-			main_view
-		)
-		#main_ctrl.update()
 
 		# ダウンロードクッションビュー
 		if troute.match("/image/:name"):
@@ -637,26 +632,22 @@ async def main(page: ft.Page):
 				ft.View(
 					"/image/" + troute.name,
 					[
-						ft.FilledButton("Back", on_click=image_back_button_on_click),
-						ft.Text("Image: " + troute.name)
-					]
+						ft.Text("Image: " + troute.name),
+						ft.Text("URL: " + Images.data[troute.name]["url"])
+					],
+					appbar
 				)
 			)
-		# メインビューの初回読み込み
-		else:
-			await page.update_async()
-			await main_ctrl.load_legends()
-			await main_ctrl.load_skins()
-			await main_ctrl.load_tags()
-			await main_ctrl.load_images()
 
 		await page.update_async()
 
 	# ルートポップイベント
-	def view_pop(view):
+	async def view_pop(view):
 		page.views.pop()
-		top_view = page.views[-1]
-		page.go(top_view.route)
+		if len(page.views) > 1:
+			await page.update_async()
+		else:
+			await page.go_async("/")
 
 	# ページルーティングのイベント定義
 	page.on_route_change = route_change
@@ -668,7 +659,13 @@ async def main(page: ft.Page):
 	# ルートページへ移動
 	await page.go_async("/")
 
+	# メインビューの初回読み込み
+	await main_ctrl.load_legends()
+	await main_ctrl.load_skins()
+	await main_ctrl.load_tags()
+	await main_ctrl.load_images()
+
 	#await page.update_async()
 
 
-ft.app(target=main, assets_dir="assets", port=8550)
+ft.app(target=main, assets_dir="assets")
