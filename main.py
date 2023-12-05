@@ -388,7 +388,7 @@ class RRIGApp(ft.UserControl):
 
 	# 画像ダウンロードボタンクリック時
 	async def image_download_button_on_click(self, e):
-		await self.page.go_async("/image/" + e.control.key)
+		await self.page.go_async("/image/" + os.path.splitext(os.path.basename(e.control.key))[0])
 
 	# 画像タグクリック時
 	async def image_tag_button_on_click(self, e):
@@ -626,18 +626,22 @@ async def main(page: ft.Page):
 	async def route_change(e: ft.RouteChangeEvent):
 		troute = ft.TemplateRoute(e.route)
 
+		if troute.match("/"):
+			await page.go_async("/")
+
 		# ダウンロードクッションビュー
 		if troute.match("/image/:name"):
-			page.views.append(
-				ft.View(
-					"/image/" + troute.name,
-					[
-						ft.Text("Image: " + troute.name),
-						ft.Text("URL: " + Images.data[troute.name]["url"])
-					],
-					appbar
+			if troute.name + ".webp" in Images.data:
+				page.views.append(
+					ft.View(
+						"/image/" + troute.name,
+						[
+							ft.Text("Image: " + troute.name),
+							ft.Text("URL: " + Images.data[troute.name + ".webp"]["url"])
+						],
+						appbar
+					)
 				)
-			)
 
 		await page.update_async()
 
