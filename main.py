@@ -459,7 +459,7 @@ class RRIGApp(ft.UserControl):
 				)
 
 			# ダウンロードボタン
-			dl_button = ft.IconButton(
+			"""dl_button = ft.IconButton(
 				ft.icons.DOWNLOAD,
 				#url=App.api_url + "/image/download/" + k,
 				key=k,
@@ -468,7 +468,7 @@ class RRIGApp(ft.UserControl):
 					bgcolor=ft.colors.BLACK54
 				),
 				on_click=self.image_download_button_on_click
-			)
+			)"""
 
 			# 画像を生成
 			self.image_grid.controls.append(
@@ -481,24 +481,32 @@ class RRIGApp(ft.UserControl):
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
 						),
-						ft.Row(
-							[
-								# 画像情報テキスト
-								ft.Text(
-									v["character"] + " | " + v["skin"] + " - " + v["number"],
-									color="white",
-									#bgcolor="black",
-									size=14,
-									weight="regular",
-									opacity=0.7,
-								),
-								dl_button
-							],
-							alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-							vertical_alignment=ft.CrossAxisAlignment.END,
-							left=10,
-							right=10,
-							bottom=10
+						ft.Container(
+							ft.Row(
+								[
+									# 画像情報テキスト
+									ft.Text(
+										v["character"] + " | " + v["skin"] + " - " + v["number"],
+										color="white",
+										#bgcolor="black",
+										size=14,
+										weight="regular",
+										opacity=0.8,
+									),
+									#dl_button
+								],
+								alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+								vertical_alignment=ft.CrossAxisAlignment.END
+							),
+							key=k,
+							margin=ft.padding.all(10),
+							alignment=ft.alignment.bottom_center,
+							on_click=self.image_download_button_on_click
+							#gradient=ft.LinearGradient(
+							#	begin=ft.alignment.top_center,
+							#	end=ft.alignment.bottom_center,
+							#	colors=[ft.colors.TRANSPARENT, ft.colors.BLACK]
+							#)
 						),
 						# タグ
 						ft.Row(
@@ -513,7 +521,7 @@ class RRIGApp(ft.UserControl):
 			)
 
 			# URLが設定されていない画像の場合はダウンロードボタンを隠す
-			dl_button.visible = (v["url"] != "")
+			#dl_button.visible = (v["url"] != "")
 
 		# 検索結果テキストを更新
 		self.search_result_text.value = f"Result: {str(count)}"
@@ -634,6 +642,7 @@ async def main(page: ft.Page):
 					),
 					ft.FilledButton(
 						"Download",
+						icon=ft.icons.DOWNLOAD,
 						url=App.api_url + "/image/download/" + name
 					)
 				],
