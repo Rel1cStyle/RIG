@@ -618,6 +618,33 @@ async def main(page: ft.Page):
 	page.controls.append(main_ctrl)
 	await page.update_async()
 
+	# ダウンロードビュー
+	def dl_ctrl(name: str):
+		return ft.Container(
+			ft.Column(
+				[
+					ft.Image(
+						src=App.api_url + "/image/preview/" + name,
+						fit=ft.ImageFit.CONTAIN,
+						repeat=ft.ImageRepeat.NO_REPEAT,
+						border_radius=ft.border_radius.all(5)
+					),
+					ft.Text(
+						name
+					),
+					ft.FilledButton(
+						"Download",
+						url=App.api_url + "/image/download/" + name
+					)
+				],
+				expand=True,
+				alignment=ft.MainAxisAlignment.CENTER,
+				horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+			),
+			expand=True,
+			alignment=ft.alignment.center
+		)
+
 	##### ページルーティング #####
 	async def image_back_button_on_click(e):
 		await page.go_async("/")
@@ -633,13 +660,12 @@ async def main(page: ft.Page):
 
 		# ダウンロードクッションビュー
 		if troute.match("/image/:name"):
-			if troute.name + ".webp" in Images.data:
+			if troute.name in Images.data:
 				page.views.append(
 					ft.View(
 						"/image/" + troute.name,
 						[
-							ft.Text("Image: " + troute.name),
-							ft.Text("URL: " + Images.data[troute.name + ".webp"]["url"])
+							dl_ctrl(troute.name)
 						],
 						appbar
 					)
