@@ -39,7 +39,7 @@ class Images():
 
 		#with open("data/images.json", mode="rb") as k:
 		#	Images.data = json.loads(k.read())
-		res = requests.get("https://api.rig.rel1c.work/list")
+		res = requests.get(App.api_url + "/image/list")
 		Images.data = res.json()
 
 		print("- Loading Legends & Tag List")
@@ -462,7 +462,7 @@ class RRIGApp(ft.UserControl):
 			# ダウンロードボタン
 			dl_button = ft.IconButton(
 				ft.icons.DOWNLOAD,
-				url="https://api.rig.rel1c.work/download/" + k,
+				url=App.api_url + "/image/download/" + k,
 				key=k,
 				style=ft.ButtonStyle(
 					color=ft.colors.WHITE,
@@ -477,7 +477,7 @@ class RRIGApp(ft.UserControl):
 					controls=[
 						# 画像
 						ft.Image(
-							src="https://api.rig.rel1c.work/preview/" + k,
+							src=App.api_url + "/image/preview/" + k,
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
