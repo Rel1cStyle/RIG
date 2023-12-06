@@ -803,25 +803,28 @@ async def main(page: ft.Page):
 
 		troute = ft.TemplateRoute(e.route)
 
-		#print("Route: " + troute.route)
+		#print("Route: \"" + page.route + "\"")
 		#page.title = troute.route + " (" + str(len(page.views)) + ")"
 		#await page.update_async()
 
 		#if troute.match("/"):
 		#	await page.go_async("/")
 
+		if page.route == "/" or page.route == "":
+			page.appbar = appbar
+			page.title = App.name
+
 		if pop_flag:
 			pop_flag = False
 		else:
-			if page.route == "/":
-				page.appbar = appbar
 
-			elif troute.match("/image/accept/:name"):
+			if troute.match("/image/accept/:name"):
 				if troute.name in Images.data:
 					# ダウンロード確認ビューを生成
 					page.views.append(
 						DLAcceptView(troute.name)
 					)
+					page.title = troute.name + " - " + App.name
 
 			# ダウンロードビュー
 			elif troute.match("/image/download/:name"):
@@ -832,6 +835,7 @@ async def main(page: ft.Page):
 					page.views.append(
 						DLView(troute.name)
 					)
+					page.title = troute.name + " - " + App.name
 
 			await page.update_async()
 		#print("Views: " + str(page.views))
