@@ -836,10 +836,11 @@ async def main(page: ft.Page):
 
 		# ルートが / の場合はメインビュー以外のビューを削除する
 		if page.route == "/" or page.route == "":
+			pop_flag = False
 			if len(page.views) > 1: del page.views[1:len(page.views)-1]
 			page.title = App.name
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
-			if not init_load: await load_image()
+			if not init_load: await load_image(); init_load = True
 			await page.update_async()
 		else:
 			if pop_flag:
