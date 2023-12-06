@@ -836,8 +836,8 @@ async def main(page: ft.Page):
 
 		# ルートが / の場合はメインビュー以外のビューを削除する
 		if page.route == "/" or page.route == "":
-			pop_flag = False
 			if len(page.views) > 1: del page.views[1:len(page.views)-1]
+			pop_flag = False
 			page.title = App.name
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
 			if not init_load: await load_image(); init_load = True
@@ -874,18 +874,21 @@ async def main(page: ft.Page):
 		previous_route = e.route
 
 	# ルートポップイベント
-	async def view_pop(view: ft.ViewPopEvent):
+	async def ex_view_pop():
 		nonlocal pop_flag
 
 		pop_flag = True
 		page.views.pop()
 		#if len(page.views) < 1: top_view = page.views[0]
 		#else: top_view = page.views[-1]
-		top_route = page.views[-1].route
-		if top_route == None: top_route = "/"
+		if len(page.views) > 1: top_route = page.views[-1].route
+		else: top_route = "/"
 		#print("Views: " + str(page.views))
 		print("Route (Pop): \"" + str(top_route) + "\"")
 		await page.go_async(top_route)
+
+	async def view_pop(view: ft.ViewPopEvent):
+		await ex_view_pop()
 		return
 		if len(page.views) > 1:
 			print("- Back")
@@ -921,4 +924,4 @@ async def main(page: ft.Page):
 	await page.update_async()
 
 
-ft.app(target=main, assets_dir="assets")
+ft.app(target=main, assets_dir="assets", route_url_strategy="hash")
