@@ -841,35 +841,34 @@ async def main(page: ft.Page):
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
 			if not init_load: await load_image()
 			await page.update_async()
-			return
-
-		if pop_flag:
-			pop_flag = False
 		else:
-			if troute.match("/image/accept/:name"):
-				if troute.name in Images.data:
-					# ダウンロード確認ビューを生成
-					page.views.append(
-						DLAcceptView(troute.name)
-					)
-					page.title = troute.name + " - " + App.name
-
-			# ダウンロードビュー
-			elif troute.match("/image/download/:name"):
-				# ダウンロード確認ビューを経由せずにアクセスした場合はメインビューへ飛ばす
-				if previous_route == "/":
-					await page.go_async("/")
-				else:
-					# ダウンロード確認ビューを削除
-					page.views.pop()
+			if pop_flag:
+				pop_flag = False
+			else:
+				if troute.match("/image/accept/:name"):
 					if troute.name in Images.data:
-						# ダウンロードビューを生成
+						# ダウンロード確認ビューを生成
 						page.views.append(
-							DLView(troute.name)
+							DLAcceptView(troute.name)
 						)
 						page.title = troute.name + " - " + App.name
 
-			await page.update_async()
+				# ダウンロードビュー
+				elif troute.match("/image/download/:name"):
+					# ダウンロード確認ビューを経由せずにアクセスした場合はメインビューへ飛ばす
+					if previous_route == "/":
+						await page.go_async("/")
+					else:
+						# ダウンロード確認ビューを削除
+						page.views.pop()
+						if troute.name in Images.data:
+							# ダウンロードビューを生成
+							page.views.append(
+								DLView(troute.name)
+							)
+							page.title = troute.name + " - " + App.name
+
+				await page.update_async()
 		# 次のルート変更時に以前のルートを取得するための変数
 		previous_route = e.route
 
