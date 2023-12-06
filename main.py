@@ -697,7 +697,11 @@ class DLAcceptView(ft.View):
 		super().__init__("/image/accept/" + image_name, controls=controls)
 
 	async def follow_twitter(self, e):
-		await self.page.launch_url_async("https://x.com/Apex_tyaneko")
+		clu = await self.page.can_launch_url_async("https://x.com/Apex_tyaneko")
+		if clu:
+			await self.page.launch_url_async("https://x.com/Apex_tyaneko")
+		else:
+			await self.page.launch_url_async("https://x.com/Apex_tyaneko", web_popup_window=True)
 		await asyncio.sleep(3)
 		self.download_button.disabled = False
 		await self.update_async()
