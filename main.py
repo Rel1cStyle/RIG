@@ -748,24 +748,11 @@ async def main(page: ft.Page):
 	# 変数
 	previous_route = "/"
 	pop_flag = False
+	init_load = False
 
 	print("Version: " + App.version)
 	print("Commit: " + App.commit_sha)
 
-	# 初回読み込みのプログレスリングを表示
-	page.splash = ft.Container(
-		ft.Column(
-			[
-				ft.ProgressRing(),
-				ft.Text("Loading", text_align=ft.TextAlign.CENTER)
-			],
-			expand=True,
-			alignment=ft.MainAxisAlignment.CENTER,
-			horizontal_alignment=ft.CrossAxisAlignment.CENTER
-		),
-		alignment=ft.alignment.center
-	)
-	await page.update_async()
 
 	# アプリバー
 	appbar = ft.AppBar(
@@ -787,6 +774,26 @@ async def main(page: ft.Page):
 		#leading_width=50
 	)
 
+	# 読み込み表示部品
+	loading_ctrl = ft.Container(
+		ft.Column(
+			[
+				ft.ProgressRing(),
+				ft.Text("Loading", text_align=ft.TextAlign.CENTER)
+			],
+			expand=True,
+			alignment=ft.MainAxisAlignment.CENTER,
+			horizontal_alignment=ft.CrossAxisAlignment.CENTER
+		),
+		bgcolor=appbar.bgcolor,
+		alignment=ft.alignment.center
+	)
+
+
+	# 読み込み表示
+	page.splash = loading_ctrl
+	await page.update_async()
+
 	# アプリバーを設定
 	page.appbar = appbar
 	#page.controls.append(appbar)
@@ -801,11 +808,22 @@ async def main(page: ft.Page):
 		for view in page.views:
 			if hasattr(view, "on_resize"): view.on_resize(e)
 
+	async def load_image():
+		page.splash = loading_ctrl
+		await page.update_async()
+		await main_ctrl.load_legends()
+		await main_ctrl.load_skins()
+		await main_ctrl.load_tags()
+		await main_ctrl.load_images()
+		page.splash = None
+		await page.update_async()
+
 	##### ページルーティング #####
 	# ルート変更イベント
 	async def route_change(e: ft.RouteChangeEvent):
 		nonlocal previous_route
 		nonlocal pop_flag
+		nonlocal init_load
 
 		troute = ft.TemplateRoute(e.route)
 
@@ -820,6 +838,7 @@ async def main(page: ft.Page):
 		if page.route == "/" or page.route == "":
 			if len(page.views) > 1: del page.views[1:len(page.views)-1]
 			page.title = App.name
+			if not init_load: await load_image()
 			await page.update_async()
 
 		if pop_flag:
@@ -887,16 +906,16 @@ async def main(page: ft.Page):
 	# 画像一覧を読み込み (APIから取得)
 	await Images.load()
 
-	# メインビューの初回読み込み
-	await main_ctrl.load_legends()
-	await main_ctrl.load_skins()
-	await main_ctrl.load_tags()
-	await main_ctrl.load_images()
-
 	# ページを移動する URLを直接入力してアクセスすると入力したパスのページが表示される
 	await page.go_async(page.route)
 
-	page.splash = None
+	# メインビューの初回読み込み
+	if page.route == "/":
+		await load_image()
+		init_load = True
+	else:
+		page.splash = None
+
 	await page.update_async()
 
 
