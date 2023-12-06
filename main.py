@@ -838,6 +838,7 @@ async def main(page: ft.Page):
 		if page.route == "/" or page.route == "":
 			if len(page.views) > 1: del page.views[1:len(page.views)-1]
 			page.title = App.name
+			# 画像の初回読み込みが行われていない場合は読み込みを実行する
 			if not init_load: await load_image()
 			await page.update_async()
 
@@ -909,7 +910,7 @@ async def main(page: ft.Page):
 	# ページを移動する URLを直接入力してアクセスすると入力したパスのページが表示される
 	await page.go_async(page.route)
 
-	# メインビューの初回読み込み
+	# メインビューの初回読み込み ルートが / 以外の場合は読み込まない
 	if page.route == "/":
 		await load_image()
 		init_load = True
