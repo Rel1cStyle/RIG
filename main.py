@@ -838,6 +838,7 @@ async def main(page: ft.Page):
 		if page.route == "/" or page.route == "":
 			if len(page.views) > 1: del page.views[1:len(page.views)-1]
 			pop_flag = False
+			page.route = "/"
 			page.title = App.name
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
 			if not init_load: await load_image(); init_load = True
