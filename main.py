@@ -746,7 +746,7 @@ async def main(page: ft.Page):
 	page.padding = 20
 
 	# 変数
-	page.data = {"event": {"on_resize": []}}
+	previous_route = "/"
 	pop_flag = False
 
 	print("Version: " + App.version)
@@ -804,6 +804,7 @@ async def main(page: ft.Page):
 	##### ページルーティング #####
 	# ルート変更イベント
 	async def route_change(e: ft.RouteChangeEvent):
+		nonlocal previous_route
 		nonlocal pop_flag
 
 		troute = ft.TemplateRoute(e.route)
@@ -815,8 +816,9 @@ async def main(page: ft.Page):
 		#if troute.match("/"):
 		#	await page.go_async("/")
 
+		# ルートが / の場合はメインビュー以外のビューを削除する
 		if page.route == "/" or page.route == "":
-			page.appbar = appbar
+			if len(page.views) > 1: del page.views[1:len(page.views)-1]
 			page.title = App.name
 			await page.update_async()
 
@@ -833,21 +835,27 @@ async def main(page: ft.Page):
 
 			# ダウンロードビュー
 			elif troute.match("/image/download/:name"):
-				# ダウンロード確認ビューを削除
-				page.views.pop()
-				if troute.name in Images.data:
-					# ダウンロードビューを生成
-					page.views.append(
-						DLView(troute.name)
-					)
-					page.title = troute.name + " - " + App.name
+				# ダウンロード確認ビューを経由せずにアクセスした場合はメインビューへ飛ばす
+				if previous_route == "/":
+					await page.go_async("/")
+				else:
+					# ダウンロード確認ビューを削除
+					page.views.pop()
+					if troute.name in Images.data:
+						# ダウンロードビューを生成
+						page.views.append(
+							DLView(troute.name)
+						)
+						page.title = troute.name + " - " + App.name
 
 			await page.update_async()
-		#print("Views: " + str(page.views))
+		# 次のルート変更時に以前のルートを取得するための変数
+		previous_route = e.route
 
 	# ルートポップイベント
 	async def view_pop(view: ft.ViewPopEvent):
 		nonlocal pop_flag
+
 		pop_flag = True
 		page.views.pop()
 		#if len(page.views) < 1: top_view = page.views[0]
@@ -885,7 +893,7 @@ async def main(page: ft.Page):
 	await main_ctrl.load_tags()
 	await main_ctrl.load_images()
 
-	# ルートページへ移動
+	# ページを移動する URLを直接入力してアクセスすると入力したパスのページが表示される
 	await page.go_async(page.route)
 
 	page.splash = None
