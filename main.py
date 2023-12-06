@@ -496,7 +496,7 @@ class RRIGApp(ft.UserControl):
 					controls=[
 						# 画像
 						ft.Image(
-							#src=App.api_url + "/image/preview/" + k,
+							src=App.api_url + "/image/preview/" + k,
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
