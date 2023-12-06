@@ -841,6 +841,7 @@ async def main(page: ft.Page):
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
 			if not init_load: await load_image()
 			await page.update_async()
+			return
 
 		if pop_flag:
 			pop_flag = False
