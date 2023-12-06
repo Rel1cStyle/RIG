@@ -630,6 +630,16 @@ class DLAcceptView(ft.View):
 			key=image_name, 
 			on_click=self.accept
 		)
+		self.button_ctrls = ft.Row(
+			[
+				self.twitter_button,
+				self.download_button
+			],
+			#wrap=True,
+			alignment=ft.MainAxisAlignment.START,
+			vertical_alignment=ft.CrossAxisAlignment.CENTER
+		)
+		self.preview_image = ft.Image("sample1.png", fit=ft.ImageFit.CONTAIN, expand=1)
 
 		controls = [
 			ft.AppBar(
@@ -656,14 +666,9 @@ class DLAcceptView(ft.View):
 											ft.Text("ダウンロード条件", style=ft.TextThemeStyle.DISPLAY_SMALL, weight=ft.FontWeight.BOLD),
 											ft.Text("このフリー画像を使用する際は、\n@Apex_tyaneko をフォローしてから使用してください。", style=ft.TextThemeStyle.BODY_LARGE, size=18),
 											ft.Text("文字入れ・立ち絵入れは○\n\"それ以外\"の加工はおやめください。", style=ft.TextThemeStyle.BODY_LARGE, size=18),
-											ft.Row(
-												[
-													self.twitter_button,
-													self.download_button
-												],
-												wrap=True
-											)
+											self.button_ctrls
 										],
+										scroll=ft.ScrollMode.ALWAYS,
 										expand=True,
 										spacing=30,
 										alignment=ft.MainAxisAlignment.CENTER,
@@ -671,13 +676,13 @@ class DLAcceptView(ft.View):
 									)
 								],
 								expand=True,
-								alignment=ft.MainAxisAlignment.CENTER, # 上下
-								vertical_alignment=ft.CrossAxisAlignment.END # 左右
+								alignment=ft.MainAxisAlignment.CENTER, # 左右
+								vertical_alignment=ft.CrossAxisAlignment.CENTER # 上下
 							),
 							expand=1,
-							padding=ft.padding.only(0, 10, 10, 10)
+							padding=ft.padding.only(0, 10, 0, 10)
 						),
-						ft.Image("sample1.png", fit=ft.ImageFit.CONTAIN, expand=1)
+						self.preview_image
 					],
 					wrap=False,
 					expand=True,
@@ -697,14 +702,21 @@ class DLAcceptView(ft.View):
 		self.download_button.disabled = False
 		await self.update_async()
 
-
 	async def accept(self, e):
 		await self.page.go_async("/image/download/" + self.image_name)
 
-	def on_resize(self, e: ft.ControlEvent):
+	async def on_resize(self, e: ft.ControlEvent):
 		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
-		if width <= 800:
-			print("<=800")
+		# 幅が800未満になったら画像を非表示にする
+		await self.adapt_image(width)
+
+	async def adapt_image(self, width):
+		self.preview_image.visible = width >= 800
+		if width >= 800:
+			self.button_ctrls.alignment=ft.MainAxisAlignment.START
+		else:
+			self.button_ctrls.alignment=ft.MainAxisAlignment.START
+		await self.update_async()
 
 # ダウンロードビュー
 class DLView(ft.View):
@@ -822,10 +834,10 @@ async def main(page: ft.Page):
 	await page.update_async()
 
 	# サイズ変更時イベント
-	def on_resize(e: ft.ControlEvent):
+	async def on_resize(e: ft.ControlEvent):
 		# ページに存在するビューをループして on_resize() が実装されていれば実行する
 		for view in page.views:
-			if hasattr(view, "on_resize"): view.on_resize(e)
+			if hasattr(view, "on_resize"): await view.on_resize(e)
 
 	async def load_image():
 		page.splash = loading_ctrl
@@ -868,11 +880,15 @@ async def main(page: ft.Page):
 			else:
 				if troute.match("/image/accept/:name"):
 					if troute.name in Images.data:
+						view = DLAcceptView(troute.name)
 						# ダウンロード確認ビューを生成
 						page.views.append(
-							DLAcceptView(troute.name)
+							view
 						)
+						await page.update_async()
 						page.title = troute.name + " - " + App.name
+						# 画面のサイズに合わせて画像の表示の初期値を切り替え
+						await view.adapt_image(page.width)
 
 				# ダウンロードビュー
 				elif troute.match("/image/download/:name"):
@@ -883,9 +899,10 @@ async def main(page: ft.Page):
 						# ダウンロード確認ビューを削除
 						page.views.pop()
 						if troute.name in Images.data:
+							view = DLView(troute.name)
 							# ダウンロードビューを生成
 							page.views.append(
-								DLView(troute.name)
+								view
 							)
 							page.title = troute.name + " - " + App.name
 
