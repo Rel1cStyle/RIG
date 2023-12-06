@@ -615,6 +615,7 @@ class RRIGApp(ft.UserControl):
 class DLAcceptView(ft.View):
 	def __init__(self, image_name: str):
 		self.image_name = image_name
+
 		controls = [
 			ft.AppBar(
 				title=ft.Text(App.name, size=16),
@@ -672,6 +673,7 @@ class DLAcceptView(ft.View):
 				padding=ft.padding.only(80, 20, 80, 20 + 56)
 			)
 		]
+
 		super().__init__("/image/accept/" + image_name, controls=controls)
 
 	async def follow_twitter(self, e):
@@ -679,6 +681,11 @@ class DLAcceptView(ft.View):
 
 	async def accept(self, e):
 		await self.page.go_async("/image/download/" + self.image_name)
+
+	def on_resize(self, e: ft.ControlEvent):
+		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
+		if width <= 800:
+			print("<=800")
 
 # ダウンロードビュー
 class DLView(ft.View):
@@ -738,13 +745,8 @@ async def main(page: ft.Page):
 	page.title = App.name
 	page.padding = 20
 
-	# リサイズ時
-	def on_resize(e):
-		pass
-
-	page.on_resize = on_resize
-
 	# 変数
+	page.data = {"event": {"on_resize": []}}
 	pop_flag = False
 
 	print("Version: " + App.version)
@@ -793,10 +795,13 @@ async def main(page: ft.Page):
 	page.controls.append(main_ctrl)
 	await page.update_async()
 
-	##### ページルーティング #####
-	async def image_back_button_on_click(e):
-		await page.go_async("/")
+	# サイズ変更時イベント
+	def on_resize(e: ft.ControlEvent):
+		# ページに存在するビューをループして on_resize() が実装されていれば実行する
+		for view in page.views:
+			if hasattr(view, "on_resize"): view.on_resize(e)
 
+	##### ページルーティング #####
 	# ルート変更イベント
 	async def route_change(e: ft.RouteChangeEvent):
 		nonlocal pop_flag
@@ -868,6 +873,9 @@ async def main(page: ft.Page):
 	page.on_route_change = route_change
 	page.on_view_pop = view_pop
 
+	# サイズ変更時のイベント定義
+	page.on_resize = on_resize
+
 	# 画像一覧を読み込み (APIから取得)
 	await Images.load()
 
@@ -878,12 +886,10 @@ async def main(page: ft.Page):
 	await main_ctrl.load_images()
 
 	# ルートページへ移動
-	await page.go_async("/")
+	await page.go_async(page.route)
 
 	page.splash = None
 	await page.update_async()
-
-	#await page.update_async()
 
 
 ft.app(target=main, assets_dir="assets")
