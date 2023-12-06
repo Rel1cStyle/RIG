@@ -699,7 +699,7 @@ class DLAcceptView(ft.View):
 	async def follow_twitter(self, e):
 		clu = await self.page.can_launch_url_async("https://x.com/Apex_tyaneko")
 		if clu:
-			await self.page.launch_url_async("https://x.com/Apex_tyaneko")
+			await self.page.launch_url_async("https://x.com/Apex_tyaneko", web_popup_window=True)
 		else:
 			await self.page.launch_url_async("https://x.com/Apex_tyaneko", web_popup_window=True)
 		await asyncio.sleep(3)
