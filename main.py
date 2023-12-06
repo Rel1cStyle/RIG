@@ -1,8 +1,10 @@
+import asyncio
 import glob
 import json
 import os
 import base64
 import logging
+import time
 from typing import Any, List, Optional, Union
 import requests
 import pyodide_http
@@ -616,6 +618,19 @@ class DLAcceptView(ft.View):
 	def __init__(self, image_name: str):
 		self.image_name = image_name
 
+		self.twitter_button = ft.FilledButton(
+			"Twitter",
+			on_click=self.follow_twitter
+		)
+		self.download_button = ft.FilledButton(
+			"Download",
+			disabled=True,
+			icon=ft.icons.DOWNLOAD,
+			style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.WHITE),
+			key=image_name, 
+			on_click=self.accept
+		)
+
 		controls = [
 			ft.AppBar(
 				title=ft.Text(App.name, size=16),
@@ -643,8 +658,8 @@ class DLAcceptView(ft.View):
 											ft.Text("文字入れ・立ち絵入れは○\n\"それ以外\"の加工はおやめください。", style=ft.TextThemeStyle.BODY_LARGE, size=18),
 											ft.Row(
 												[
-													ft.FilledButton("Twitter", on_click=self.follow_twitter),
-													ft.FilledButton("Download", icon=ft.icons.DOWNLOAD, style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.WHITE), key=image_name, on_click=self.accept)
+													self.twitter_button,
+													self.download_button
 												],
 												wrap=True
 											)
@@ -678,6 +693,10 @@ class DLAcceptView(ft.View):
 
 	async def follow_twitter(self, e):
 		await self.page.launch_url_async("https://x.com/Apex_tyaneko")
+		await asyncio.sleep(3)
+		self.download_button.disabled = False
+		await self.update_async()
+
 
 	async def accept(self, e):
 		await self.page.go_async("/image/download/" + self.image_name)
