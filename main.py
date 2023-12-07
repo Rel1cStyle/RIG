@@ -706,7 +706,7 @@ class DLAcceptView(ft.View):
 		)
 		self.download_button = ft.FilledButton(
 			"Download",
-			url=Images.data[image_name]["url"],
+			url=App.api_url + "/image/download/" + image_name,
 			url_target="_blank",
 			icon=ft.icons.DOWNLOAD,
 			style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.WHITE),
