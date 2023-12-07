@@ -72,6 +72,21 @@ class Images():
 		print(f"Done ({str(len(Images.data))})")
 
 
+def loading_ctrl():
+	return ft.Container(
+		ft.Column(
+			[
+				ft.ProgressRing(),
+				ft.Text("Loading", text_align=ft.TextAlign.CENTER)
+			],
+			expand=True,
+			alignment=ft.MainAxisAlignment.CENTER,
+			horizontal_alignment=ft.CrossAxisAlignment.CENTER
+		),
+		#bgcolor=,
+		alignment=ft.alignment.center
+	)
+
 class RRIGApp(ft.UserControl):
 	def __init__(self):
 		super().__init__()
@@ -410,7 +425,7 @@ class RRIGApp(ft.UserControl):
 
 	# 画像ダウンロードボタンクリック時
 	async def image_download_button_on_click(self, e):
-		await self.page.go_async("/image/accept/" + os.path.splitext(os.path.basename(e.control.key))[0])
+		await self.page.go_async("/image/preview/" + os.path.splitext(os.path.basename(e.control.key))[0])
 
 	# 画像タグクリック時
 	async def image_tag_button_on_click(self, e):
@@ -420,6 +435,10 @@ class RRIGApp(ft.UserControl):
 	# 画像の読み込み&生成
 	async def load_images(self):
 		print("Loading...")
+
+		# 読み込み表示
+		self.page.splash = loading_ctrl()
+		await self.page.update_async()
 
 		self.image_grid.controls = []
 		count = 0
@@ -548,6 +567,10 @@ class RRIGApp(ft.UserControl):
 		# 検索結果テキストを更新
 		self.search_result_text.value = f"Result: {str(count)}"
 
+		# 読み込み表示を消す
+		self.page.splash = None
+		await self.page.update_async()
+
 		await self.update_async()
 		print(f"Filtered Image Count: {str(count)}")
 
@@ -613,21 +636,82 @@ class RRIGApp(ft.UserControl):
 		await self.update_async()
 
 
-# ダウンロード確認ビュー
+# ダウンロードプレビュービュー
+class DLPreviewView(ft.View):
+	def __init__(self, image_name: str):
+		self.image_name = image_name
+		controls = [
+			ft.AppBar(
+				title=ft.Text(App.name, size=16),
+				center_title=False,
+				actions=[
+					# バージョン表記テキスト
+					ft.Container(
+						ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
+						padding=ft.padding.only(0, 0, 20, 0),
+						alignment=ft.alignment.center_right,
+						expand=False
+					)
+				]
+			),
+			ft.Container(
+				ft.Column(
+					[
+						# プレビュー画像 & 画像名 & ダウンロードボタン
+						ft.Column(
+							[
+								ft.Image(
+									src=App.api_url + "/image/preview/" + image_name,
+									fit=ft.ImageFit.CONTAIN,
+									repeat=ft.ImageRepeat.NO_REPEAT,
+									border_radius=ft.border_radius.all(5)
+								),
+								ft.Text(
+									image_name
+								),
+								ft.FilledButton(
+									"Download",
+									icon=ft.icons.DOWNLOAD,
+									on_click=self.download
+								)
+							],
+							expand=False,
+							alignment=ft.MainAxisAlignment.CENTER,
+							horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+						)
+					],
+					expand=True,
+					alignment=ft.MainAxisAlignment.SPACE_AROUND,
+					horizontal_alignment=ft.CrossAxisAlignment.START
+				),
+				expand=True,
+				alignment=ft.alignment.center
+			)
+		]
+		super().__init__("/image/preview/" + image_name, controls=controls)
+
+	async def download(self, e):
+		await self.page.go_async("/image/download/" + self.image_name)
+
+# ダウンロードビュー
 class DLAcceptView(ft.View):
 	def __init__(self, image_name: str):
 		self.image_name = image_name
 
 		self.twitter_button = ft.FilledButton(
 			"Twitter",
+			url="https://x.com/Apex_tyaneko",
+			url_target="_blank",
 			on_click=self.follow_twitter
 		)
 		self.download_button = ft.FilledButton(
 			"Download",
-			disabled=True,
+			url=Images.data[image_name]["url"],
+			url_target="_blank",
 			icon=ft.icons.DOWNLOAD,
 			style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.WHITE),
-			key=image_name, 
+			key=image_name,
+			disabled=True,
 			on_click=self.accept
 		)
 		self.button_ctrls = ft.Row(
@@ -694,16 +778,16 @@ class DLAcceptView(ft.View):
 			)
 		]
 
-		super().__init__("/image/accept/" + image_name, controls=controls)
+		super().__init__("/image/download/" + image_name, controls=controls)
 
 	async def follow_twitter(self, e):
-		await self.page.launch_url_async("https://x.com/Apex_tyaneko", web_window_name="_blank")
 		await asyncio.sleep(3)
 		self.download_button.disabled = False
 		await self.update_async()
 
 	async def accept(self, e):
-		await self.page.go_async("/image/download/" + self.image_name)
+		#await self.page.go_async("/")
+		pass
 
 	async def on_resize(self, e: ft.ControlEvent):
 		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
@@ -718,59 +802,6 @@ class DLAcceptView(ft.View):
 			self.button_ctrls.alignment=ft.MainAxisAlignment.START
 		await self.update_async()
 
-# ダウンロードビュー
-class DLView(ft.View):
-	def __init__(self, image_name: str):
-		controls = [
-			ft.AppBar(
-				title=ft.Text(App.name, size=16),
-				center_title=False,
-				actions=[
-					# バージョン表記テキスト
-					ft.Container(
-						ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
-						padding=ft.padding.only(0, 0, 20, 0),
-						alignment=ft.alignment.center_right,
-						expand=False
-					)
-				]
-			),
-			ft.Container(
-				ft.Column(
-					[
-						# プレビュー画像 & 画像名 & ダウンロードボタン
-						ft.Column(
-							[
-								ft.Image(
-									src=App.api_url + "/image/preview/" + image_name,
-									fit=ft.ImageFit.CONTAIN,
-									repeat=ft.ImageRepeat.NO_REPEAT,
-									border_radius=ft.border_radius.all(5)
-								),
-								ft.Text(
-									image_name
-								),
-								ft.FilledButton(
-									"Download",
-									icon=ft.icons.DOWNLOAD,
-									url=App.api_url + "/image/download/" + image_name
-								)
-							],
-							expand=False,
-							alignment=ft.MainAxisAlignment.CENTER,
-							horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-						)
-					],
-					expand=True,
-					alignment=ft.MainAxisAlignment.SPACE_AROUND,
-					horizontal_alignment=ft.CrossAxisAlignment.START
-				),
-				expand=True,
-				alignment=ft.alignment.center
-			)
-		]
-		super().__init__("/image/download/" + image_name, controls=controls)
-
 
 async def main(page: ft.Page):
 	page.title = App.name
@@ -784,6 +815,13 @@ async def main(page: ft.Page):
 	print("Version: " + App.version)
 	print("Commit: " + App.commit_sha)
 
+
+	# メインビュー
+	main_ctrl = RRIGApp()
+
+	# 読み込み表示
+	page.splash = loading_ctrl()
+	await page.update_async()
 
 	# アプリバー
 	appbar = ft.AppBar(
@@ -805,31 +843,10 @@ async def main(page: ft.Page):
 		#leading_width=50
 	)
 
-	# 読み込み表示部品
-	loading_ctrl = ft.Container(
-		ft.Column(
-			[
-				ft.ProgressRing(),
-				ft.Text("Loading", text_align=ft.TextAlign.CENTER)
-			],
-			expand=True,
-			alignment=ft.MainAxisAlignment.CENTER,
-			horizontal_alignment=ft.CrossAxisAlignment.CENTER
-		),
-		bgcolor=appbar.bgcolor,
-		alignment=ft.alignment.center
-	)
-
-
-	# 読み込み表示
-	page.splash = loading_ctrl
-	await page.update_async()
-
 	# アプリバーを設定
 	page.appbar = appbar
 	#page.controls.append(appbar)
-	# メインビューを生成
-	main_ctrl = RRIGApp()
+	# メインビューを追加
 	page.controls.append(main_ctrl)
 	await page.update_async()
 
@@ -840,7 +857,7 @@ async def main(page: ft.Page):
 			if hasattr(view, "on_resize"): await view.on_resize(e)
 
 	async def load_image():
-		page.splash = loading_ctrl
+		page.splash = loading_ctrl()
 		await page.update_async()
 		await main_ctrl.load_legends()
 		await main_ctrl.load_skins()
@@ -878,33 +895,35 @@ async def main(page: ft.Page):
 			if pop_flag:
 				pop_flag = False
 			else:
-				if troute.match("/image/accept/:name"):
+				# ダウンロードプレビュー
+				if troute.match("/image/preview/:name"):
 					if troute.name in Images.data:
-						view = DLAcceptView(troute.name)
-						# ダウンロード確認ビューを生成
+						view = DLPreviewView(troute.name)
+						# ビューを生成
 						page.views.append(
 							view
 						)
-						await page.update_async()
 						page.title = troute.name + " - " + App.name
-						# 画面のサイズに合わせて画像の表示の初期値を切り替え
-						await view.adapt_image(page.width)
 
-				# ダウンロードビュー
+				# ダウンロード
 				elif troute.match("/image/download/:name"):
 					# ダウンロード確認ビューを経由せずにアクセスした場合はメインビューへ飛ばす
-					if previous_route == "/":
-						await page.go_async("/")
-					else:
-						# ダウンロード確認ビューを削除
-						page.views.pop()
+					if previous_route.startswith("/image/preview/"):
 						if troute.name in Images.data:
-							view = DLView(troute.name)
-							# ダウンロードビューを生成
+							# ダウンロード確認ビューを削除
+							page.views.pop()
+							# ビューを生成
+							view = DLAcceptView(troute.name)
 							page.views.append(
 								view
 							)
+							await page.update_async()
 							page.title = troute.name + " - " + App.name
+							# 画面のサイズに合わせて画像の表示の初期値を切り替え
+							await view.adapt_image(page.width)
+							print(page.width)
+					else:
+						await page.go_async("/")
 
 				await page.update_async()
 		# 次のルート変更時に以前のルートを取得するための変数
