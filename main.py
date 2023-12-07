@@ -13,7 +13,6 @@ import flet as ft
 from flet_core.control import Control, OptionalNumber
 from flet_core.ref import Ref
 from flet_core.types import AnimationValue, ClipBehavior, OffsetValue, ResponsiveNumber, RotateValue, ScaleValue
-import flet_fastapi
 
 from app import App
 
@@ -982,6 +981,5 @@ async def main(page: ft.Page):
 	await page.update_async()
 
 
-app = flet_fastapi.app(main, assets_dir="/assets")
 if __name__ == "__main__":
 	ft.app(target=main, assets_dir="assets")
