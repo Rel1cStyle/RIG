@@ -1,10 +1,10 @@
 import asyncio
-import glob
-import json
+#import glob
+#import json
 import os
-import base64
+#import base64
 import logging
-import time
+#import time
 from typing import Any, List, Optional, Union
 import requests
 import pyodide_http
@@ -13,6 +13,7 @@ import flet as ft
 from flet_core.control import Control, OptionalNumber
 from flet_core.ref import Ref
 from flet_core.types import AnimationValue, ClipBehavior, OffsetValue, ResponsiveNumber, RotateValue, ScaleValue
+import flet_fastapi
 
 from app import App
 
@@ -885,6 +886,7 @@ async def main(page: ft.Page):
 		# ルートが / の場合はメインビュー以外のビューを削除する
 		if page.route == "/" or page.route == "":
 			if len(page.views) > 1: del page.views[1:len(page.views)-1]
+			print(page.views)
 			pop_flag = False
 			page.route = "/"
 			page.title = App.name
@@ -980,4 +982,6 @@ async def main(page: ft.Page):
 	await page.update_async()
 
 
-ft.app(target=main, assets_dir="assets")
+app = flet_fastapi.app(main, assets_dir="/assets")
+if __name__ == "__main__":
+	ft.app(target=main, assets_dir="assets")
