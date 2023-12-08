@@ -949,4 +949,4 @@ async def main(page: ft.Page):
 	await page.update_async()
 
 
-ft.app(target=main, assets_dir="assets", port=8000, view=ft.AppView.FLET_APP)
+ft.app(target=main, assets_dir="assets", port=8000, view=ft.AppView.FLET_APP, web_renderer=ft.WebRenderer.HTML)
