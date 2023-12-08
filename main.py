@@ -884,9 +884,10 @@ async def main(page: ft.Page):
 
 		# ルートが / の場合はメインビュー以外のビューを削除する
 		if page.route == "/":
+			# ページが2以上の場合はメインビュー以外を消す
 			if len(page.views) >= 2: 
 				print("- Clear views")
-				del page.views[1:len(page.views)-1]
+				del page.views[1:len(page.views)]
 			print(page.views)
 			pop_flag = False
 			page.route = "/"
