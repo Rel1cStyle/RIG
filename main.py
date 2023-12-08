@@ -881,15 +881,15 @@ async def main(page: ft.Page):
 
 		troute = ft.TemplateRoute(e.route)
 
-		print("Route: \"" + page.route + "\"")
+		#print("Route: \"" + page.route + "\"")
 
 		# ルートが / の場合はメインビュー以外のビューを削除する
 		if page.route == "/":
 			# ページが2以上の場合はメインビュー以外を消す
 			if len(page.views) >= 2:
-				print("- Clear views")
+				#print("- Clear views")
 				del page.views[1:len(page.views)]
-			print(page.views)
+			#print(page.views)
 			pop_flag = False
 			page.route = "/"
 			page.title = App.name
@@ -898,14 +898,14 @@ async def main(page: ft.Page):
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
 			if not init_load: await load_image(); init_load = True
 		else:
-			pop_flag = False
+			#pop_flag = False
 			if pop_flag:
 				pop_flag = False
 			else:
 				# ダウンロードプレビュー
 				if troute.match("/image/preview/:name"):
 					if troute.name in Images.data:
-						if previous_route.startswith("/image/download/"): page.views.pop()
+						if previous_route.startswith("/image/download/") and pop_flag == False: page.views.pop()
 						view = DLPreviewView(troute.name)
 						# ビューを生成
 						page.views.append(
@@ -915,7 +915,7 @@ async def main(page: ft.Page):
 
 				# ダウンロード
 				elif troute.match("/image/download/:name"):
-					# ダウンロード確認ビューを経由せずにアクセスした場合はメインビューへ飛ばす
+					# ダウンロード確認ビューを経由せずにアクセスした場合はプレビューへ飛ばす
 					if previous_route.startswith("/image/preview/"):
 						if troute.name in Images.data:
 							# ダウンロード確認ビューを削除
@@ -943,13 +943,13 @@ async def main(page: ft.Page):
 
 							# 画面のサイズに合わせて画像の表示の初期値を切り替え
 							await view.adapt_image(page.width)
-							print("Width: " + str(page.width))
+							#print("Width: " + str(page.width))
 					else:
 						if troute.name in Images.data: await page.go_async("/image/preview/" + troute.name)
 						else: await page.go_async("/")
 
 				await page.update_async()
-				print(page.views)
+				#print(page.views)
 		# 次のルート変更時に以前のルートを取得するための変数
 		previous_route = e.route
 
@@ -964,7 +964,7 @@ async def main(page: ft.Page):
 		if len(page.views) > 1: top_route = page.views[-1].route
 		else: top_route = "/"
 		#print("Views: " + str(page.views))
-		print("Route (Pop): \"" + str(top_route) + "\"")
+		#print("Route (Pop): \"" + str(top_route) + "\"")
 		await page.go_async(top_route)
 
 	async def view_pop(view: ft.ViewPopEvent):
