@@ -883,8 +883,10 @@ async def main(page: ft.Page):
 		#	await page.go_async("/")
 
 		# ルートが / の場合はメインビュー以外のビューを削除する
-		if page.route == "/" or page.route == "":
-			if len(page.views) > 1: del page.views[1:len(page.views)-1]
+		if page.route == "/":
+			if len(page.views) >= 2: 
+				print("- Clear views")
+				del page.views[1:len(page.views)-1]
 			print(page.views)
 			pop_flag = False
 			page.route = "/"
@@ -981,4 +983,4 @@ async def main(page: ft.Page):
 	await page.update_async()
 
 
-ft.app(target=main, assets_dir="assets")
+ft.app(target=main, assets_dir="assets", port=8000, view=ft.AppView.WEB_BROWSER)
