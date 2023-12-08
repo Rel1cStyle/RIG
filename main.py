@@ -810,6 +810,12 @@ async def main(page: ft.Page):
 	page.title = App.name
 	page.padding = 20
 
+	# 全体のフォント
+	page.fonts = {
+		"Noto Sans Japanese": "/fonts/NotoSansJP-Regular.ttf"
+	}
+	page.theme = ft.Theme(font_family="Noto Sans Japanese")
+
 	# 変数
 	previous_route = "/"
 	pop_flag = False
