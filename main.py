@@ -1,11 +1,12 @@
 import asyncio
+import datetime
 #import glob
 #import json
 import os
 #import base64
 import logging
 #import time
-from typing import Any, List, Optional, Union
+#from typing import Any, List, Optional, Union
 import requests
 import pyodide_http
 
@@ -278,10 +279,13 @@ class RRIGApp(ft.View):
 		super().__init__("/", controls=controls)
 
 	# サイズ変更イベント
-	async def on_resize(self, e: ft.ControlEvent):
-		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
+	async def adapt_appbar(self, width):
 		self.appbar_ctrl.title.visible = width > 500
 		await self.update_async()
+
+	async def on_resize(self, e: ft.ControlEvent):
+		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
+		await self.adapt_appbar(width)
 
 	# レジェンドボックス
 	async def switch_legend_selection(self, legend_name: str, enable: bool=None):
@@ -726,7 +730,6 @@ class DLAcceptView(ft.View):
 			icon=ft.icons.DOWNLOAD,
 			style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.WHITE),
 			key=image_name,
-			disabled=True,
 			on_click=self.accept
 		)
 		self.button_ctrls = ft.Row(
@@ -784,12 +787,15 @@ class DLAcceptView(ft.View):
 		super().__init__("/image/download/" + image_name, controls=controls)
 
 	async def follow_twitter(self, e):
+		# 3秒間待機
 		await asyncio.sleep(3)
+		# ダウンロードボタンを有効化
 		self.download_button.disabled = False
+		# Twitter ボタンクリック日時をセット
+		await self.page.client_storage.set_async("rel1cstyle.rig.twitter_click_date", datetime.datetime.timestamp(datetime.datetime.utcnow()))
 		await self.update_async()
 
 	async def accept(self, e):
-		#await self.page.go_async("/")
 		pass
 
 	async def on_resize(self, e: ft.ControlEvent):
@@ -887,6 +893,7 @@ async def main(page: ft.Page):
 			pop_flag = False
 			page.route = "/"
 			page.title = App.name
+			await main_ctrl.adapt_appbar(page.width)
 			await page.update_async()
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
 			if not init_load: await load_image(); init_load = True
@@ -913,13 +920,27 @@ async def main(page: ft.Page):
 						if troute.name in Images.data:
 							# ダウンロード確認ビューを削除
 							page.views.pop()
+
 							# ビューを生成
 							view = DLAcceptView(troute.name)
 							page.views.append(
 								view
 							)
+
 							await page.update_async()
+
+							# Twitterボタンをクリックした日から1ヶ月以上経過している場合もしくはクリックしていない場合はダウンロードボタンを無効化
+							tw_click_date = await page.client_storage.get_async("rel1cstyle.rig.twitter_click_date")
+							if tw_click_date == None:
+								view.download_button.disabled = True
+								await view.update_async()
+							else:
+								if (datetime.datetime.utcnow() - datetime.datetime.fromtimestamp(tw_click_date)).days >= 30:
+									view.download_button.disabled = True
+									await view.update_async()
+
 							page.title = troute.name + " - " + App.name
+
 							# 画面のサイズに合わせて画像の表示の初期値を切り替え
 							await view.adapt_image(page.width)
 							print("Width: " + str(page.width))
