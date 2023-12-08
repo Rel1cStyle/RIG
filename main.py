@@ -277,6 +277,12 @@ class RRIGApp(ft.View):
 
 		super().__init__("/", controls=controls)
 
+	# サイズ変更イベント
+	async def on_resize(self, e: ft.ControlEvent):
+		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
+		if width <= 500:
+			pass
+
 	# レジェンドボックス
 	async def switch_legend_selection(self, legend_name: str, enable: bool=None):
 		"""レジェンドの選択状態を切り替えます。
@@ -879,12 +885,14 @@ async def main(page: ft.Page):
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
 			if not init_load: await load_image(); init_load = True
 		else:
+			pop_flag = False
 			if pop_flag:
 				pop_flag = False
 			else:
 				# ダウンロードプレビュー
 				if troute.match("/image/preview/:name"):
 					if troute.name in Images.data:
+						if previous_route.startswith("/image/download/"): page.views.pop()
 						view = DLPreviewView(troute.name)
 						# ビューを生成
 						page.views.append(
