@@ -263,13 +263,13 @@ class RRIGApp(ft.View):
 			padding=ft.padding.only(0, 0, 15, 0)
 		)
 
-		self.appbar = appbar_ctrl()
-		self.appbar.toolbar_height = 80
-		self.appbar.actions.append(self.search_box_base)
+		self.appbar_ctrl = appbar_ctrl()
+		self.appbar_ctrl.toolbar_height = 80
+		self.appbar_ctrl.actions.append(self.search_box_base)
 
 		# ベース部品
 		controls = [
-			self.appbar,
+			self.appbar_ctrl,
 			#self.search_box_base,
 			self.filter_box_base,
 			self.image_grid_base
@@ -280,8 +280,8 @@ class RRIGApp(ft.View):
 	# サイズ変更イベント
 	async def on_resize(self, e: ft.ControlEvent):
 		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
-		if width <= 500:
-			pass
+		self.appbar_ctrl.title.visible = width > 500
+		await self.update_async()
 
 	# レジェンドボックス
 	async def switch_legend_selection(self, legend_name: str, enable: bool=None):
