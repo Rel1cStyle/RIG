@@ -886,7 +886,7 @@ async def main(page: ft.Page):
 		# ルートが / の場合はメインビュー以外のビューを削除する
 		if page.route == "/":
 			# ページが2以上の場合はメインビュー以外を消す
-			if len(page.views) >= 2: 
+			if len(page.views) >= 2:
 				print("- Clear views")
 				del page.views[1:len(page.views)]
 			print(page.views)
@@ -919,7 +919,7 @@ async def main(page: ft.Page):
 					if previous_route.startswith("/image/preview/"):
 						if troute.name in Images.data:
 							# ダウンロード確認ビューを削除
-							page.views.pop()
+							if len(page.views) >= 2: page.views.pop()
 
 							# ビューを生成
 							view = DLAcceptView(troute.name)
@@ -945,7 +945,8 @@ async def main(page: ft.Page):
 							await view.adapt_image(page.width)
 							print("Width: " + str(page.width))
 					else:
-						await page.go_async("/")
+						if troute.name in Images.data: await page.go_async("/image/preview/" + troute.name)
+						else: await page.go_async("/")
 
 				await page.update_async()
 				print(page.views)
