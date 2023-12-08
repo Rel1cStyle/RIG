@@ -72,7 +72,7 @@ class Images():
 		print(f"Done ({str(len(Images.data))})")
 
 
-def loading_ctrl():
+def loading_ctrl() -> ft.Container:
 	return ft.Container(
 		ft.Column(
 			[
@@ -87,38 +87,33 @@ def loading_ctrl():
 		alignment=ft.alignment.center
 	)
 
-class RRIGApp(ft.UserControl):
-	def __init__(self):
-		super().__init__()
+def appbar_ctrl() -> ft.AppBar:
+	return ft.AppBar(
+		title=ft.Text(App.name, size=16),
+		center_title=False,
+		actions=[
+			# バージョン表記テキスト
+			ft.Container(
+				ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
+				padding=ft.padding.only(0, 0, 20, 0),
+				alignment=ft.alignment.center_right,
+				expand=False
+			)
+		]
+		#leading=ft.Image(
+		#	src="icons/icon.png",
+		#	fit=ft.ImageFit.CONTAIN
+		#),
+		#leading_width=50
+	)
 
+class RRIGApp(ft.View):
+	def __init__(self):
 		# 変数の初期化
 		self.search_word = "" # 検索ワード
 		self.selected_legends = [] # 選択中のレジェンド一覧
 		self.selected_skins = [] # 選択中のスキン一覧
 		self.selected_tags = [] # 選択中のタグ一覧
-
-	def build(self):
-		self.expand = True
-
-		# アプリバー
-		self.appbar = ft.AppBar(
-			title=ft.Text(App.name, size=16),
-			center_title=False,
-			actions=[
-				# バージョン表記テキスト
-				ft.Container(
-					ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
-					padding=ft.padding.only(0, 0, 20, 0),
-					alignment=ft.alignment.center_right,
-					expand=False
-				)
-			]
-			#leading=ft.Image(
-			#	src="icons/icon.png",
-			#	fit=ft.ImageFit.CONTAIN
-			#),
-			#leading_width=50
-		)
 
 		##### 画像タイル #####
 		self.image_grid = ft.GridView(
@@ -251,14 +246,13 @@ class RRIGApp(ft.UserControl):
 		)
 
 		# ベース部品
-		return ft.Column(
-			controls=[
-				self.search_box_base,
-				self.filter_box_base,
-				self.image_grid_base
-			],
-			expand=True
-		)
+		controls = [
+			#self.search_box_base,
+			self.filter_box_base,
+			self.image_grid_base
+		]
+
+		super().__init__("/", controls=controls)
 
 	# レジェンドボックス
 	async def switch_legend_selection(self, legend_name: str, enable: bool=None):
@@ -572,7 +566,7 @@ class RRIGApp(ft.UserControl):
 		await self.page.update_async()
 
 		await self.update_async()
-		print(f"Filtered Image Count: {str(count)}")
+		print(f"Done: {str(count)}")
 
 	# レジェンドの読み込み&生成
 	async def load_legends(self):
@@ -641,19 +635,7 @@ class DLPreviewView(ft.View):
 	def __init__(self, image_name: str):
 		self.image_name = image_name
 		controls = [
-			ft.AppBar(
-				title=ft.Text(App.name, size=16),
-				center_title=False,
-				actions=[
-					# バージョン表記テキスト
-					ft.Container(
-						ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
-						padding=ft.padding.only(0, 0, 20, 0),
-						alignment=ft.alignment.center_right,
-						expand=False
-					)
-				]
-			),
+			appbar_ctrl(),
 			ft.Container(
 				ft.Column(
 					[
@@ -726,19 +708,7 @@ class DLAcceptView(ft.View):
 		self.preview_image = ft.Image("sample1.png", fit=ft.ImageFit.CONTAIN, expand=1)
 
 		controls = [
-			ft.AppBar(
-				title=ft.Text(App.name, size=16),
-				center_title=False,
-				actions=[
-					# バージョン表記テキスト
-					ft.Container(
-						ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
-						padding=ft.padding.only(0, 0, 20, 0),
-						alignment=ft.alignment.center_right,
-						expand=False
-					)
-				]
-			),
+			appbar_ctrl(),
 			ft.Container(
 				ft.Row(
 					[
@@ -816,11 +786,20 @@ async def main(page: ft.Page):
 	print("Commit: " + App.commit_sha)
 
 
+	# 読み込み表示
+	page.splash = loading_ctrl()
+	await page.update_async()
+
 	# メインビュー
 	main_ctrl = RRIGApp()
 
-	# 読み込み表示
-	page.splash = loading_ctrl()
+	# メインビューを追加
+	page.views.clear()
+	page.views.append(main_ctrl)
+
+	# アプリバーを設定
+	page.appbar = appbar_ctrl()
+
 	await page.update_async()
 
 	# アプリバー
@@ -843,28 +822,13 @@ async def main(page: ft.Page):
 		#leading_width=50
 	)
 
-	# アプリバーを設定
-	page.appbar = appbar
 	#page.controls.append(appbar)
-	# メインビューを追加
-	page.controls.append(main_ctrl)
-	await page.update_async()
 
 	# サイズ変更時イベント
 	async def on_resize(e: ft.ControlEvent):
 		# ページに存在するビューをループして on_resize() が実装されていれば実行する
 		for view in page.views:
 			if hasattr(view, "on_resize"): await view.on_resize(e)
-
-	async def load_image():
-		page.splash = loading_ctrl()
-		await page.update_async()
-		await main_ctrl.load_legends()
-		await main_ctrl.load_skins()
-		await main_ctrl.load_tags()
-		await main_ctrl.load_images()
-		page.splash = None
-		await page.update_async()
 
 	##### ページルーティング #####
 	# ルート変更イベント
@@ -876,11 +840,6 @@ async def main(page: ft.Page):
 		troute = ft.TemplateRoute(e.route)
 
 		print("Route: \"" + page.route + "\"")
-		#page.title = troute.route + " (" + str(len(page.views)) + ")"
-		#await page.update_async()
-
-		#if troute.match("/"):
-		#	await page.go_async("/")
 
 		# ルートが / の場合はメインビュー以外のビューを削除する
 		if page.route == "/":
@@ -892,9 +851,9 @@ async def main(page: ft.Page):
 			pop_flag = False
 			page.route = "/"
 			page.title = App.name
+			await page.update_async()
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
 			if not init_load: await load_image(); init_load = True
-			await page.update_async()
 		else:
 			if pop_flag:
 				pop_flag = False
@@ -925,11 +884,12 @@ async def main(page: ft.Page):
 							page.title = troute.name + " - " + App.name
 							# 画面のサイズに合わせて画像の表示の初期値を切り替え
 							await view.adapt_image(page.width)
-							print(page.width)
+							print("Width: " + str(page.width))
 					else:
 						await page.go_async("/")
 
 				await page.update_async()
+				print(page.views)
 		# 次のルート変更時に以前のルートを取得するための変数
 		previous_route = e.route
 
@@ -961,6 +921,16 @@ async def main(page: ft.Page):
 		page.appbar.visible = True
 		await page.update_async()
 
+	async def load_image():
+		page.splash = loading_ctrl()
+		await page.update_async()
+		await main_ctrl.load_legends()
+		await main_ctrl.load_skins()
+		await main_ctrl.load_tags()
+		await main_ctrl.load_images()
+		page.splash = None
+		await page.update_async()
+
 	# ページルーティングのイベント定義
 	page.on_route_change = route_change
 	page.on_view_pop = view_pop
@@ -972,16 +942,11 @@ async def main(page: ft.Page):
 	await Images.load()
 
 	# ページを移動する URLを直接入力してアクセスすると入力したパスのページが表示される
-	await page.go_async(page.route)
+	await page.go_async(page.route, False)
 
-	# メインビューの初回読み込み ルートが / 以外の場合は読み込まない
-	if page.route == "/":
-		await load_image()
-		init_load = True
-	else:
-		page.splash = None
+	page.splash = None
 
 	await page.update_async()
 
 
-ft.app(target=main, assets_dir="assets", port=8000, view=ft.AppView.WEB_BROWSER)
+ft.app(target=main, assets_dir="assets", port=8000, view=ft.AppView.FLET_APP)
