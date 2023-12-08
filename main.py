@@ -89,17 +89,22 @@ def loading_ctrl() -> ft.Container:
 
 def appbar_ctrl() -> ft.AppBar:
 	return ft.AppBar(
-		title=ft.Text(App.name, size=16),
+		title=ft.Column(
+			[
+				# タイトル
+				ft.Text(App.name, size=16),
+				# バージョン表記テキスト
+				ft.Container(
+					ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.LEFT),
+					padding=ft.padding.only(0, 0, 0, 0),
+					alignment=ft.alignment.center_left,
+					expand=False
+				)
+			],
+			spacing=3
+		),
 		center_title=False,
-		actions=[
-			# バージョン表記テキスト
-			ft.Container(
-				ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
-				padding=ft.padding.only(0, 0, 20, 0),
-				alignment=ft.alignment.center_right,
-				expand=False
-			)
-		]
+		actions=[]
 		#leading=ft.Image(
 		#	src="icons/icon.png",
 		#	fit=ft.ImageFit.CONTAIN
@@ -237,16 +242,34 @@ class RRIGApp(ft.View):
 		##### 検索ボックス #####
 		self.search_box = ft.TextField(
 			label="Search",
+			expand=False,
 			on_submit=self.search_box_on_submit
 		)
 
+		self.search_button = ft.IconButton(ft.icons.SEARCH, on_click=self.search_button_on_click)
+
 		self.search_box_base = ft.Container(
-			content=self.search_box,
-			alignment=ft.alignment.center
+			ft.Row(
+				[
+					self.search_box,
+					self.search_button
+				],
+				expand=True,
+				wrap=True,
+				alignment=ft.MainAxisAlignment.END
+			),
+			expand=True,
+			alignment=ft.alignment.center,
+			padding=ft.padding.only(0, 0, 15, 0)
 		)
+
+		self.appbar = appbar_ctrl()
+		self.appbar.toolbar_height = 80
+		self.appbar.actions.append(self.search_box_base)
 
 		# ベース部品
 		controls = [
+			self.appbar,
 			#self.search_box_base,
 			self.filter_box_base,
 			self.image_grid_base
@@ -415,6 +438,10 @@ class RRIGApp(ft.View):
 	# 検索ボックス
 	async def search_box_on_submit(self, e):
 		self.search_word = e.control.value
+		await self.load_images()
+
+	async def search_button_on_click(self, e):
+		self.search_word = self.search_box.value
 		await self.load_images()
 
 	# 画像ダウンロードボタンクリック時
@@ -796,9 +823,6 @@ async def main(page: ft.Page):
 	# メインビューを追加
 	page.views.clear()
 	page.views.append(main_ctrl)
-
-	# アプリバーを設定
-	page.appbar = appbar_ctrl()
 
 	await page.update_async()
 
