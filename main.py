@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import math
 #import glob
 #import json
 import os
@@ -741,7 +742,13 @@ class DLAcceptView(ft.View):
 			alignment=ft.MainAxisAlignment.START,
 			vertical_alignment=ft.CrossAxisAlignment.CENTER
 		)
-		self.preview_image = ft.Image("sample1.png", fit=ft.ImageFit.CONTAIN, expand=1)
+		self.preview_image = ft.Image(
+			App.api_url + "/image/preview/" + image_name,
+			width=400,
+			fit=ft.ImageFit.NONE,
+			border_radius=ft.border_radius.all(100),
+			rotate=ft.Rotate(angle=0.1 * math.pi, alignment=ft.alignment.center_left)
+		)
 
 		controls = [
 			appbar_ctrl(),
