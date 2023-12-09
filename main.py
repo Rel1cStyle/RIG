@@ -284,8 +284,9 @@ class RRIGApp(ft.View):
 		await self.update_async()
 
 	async def adapt_search_box(self, width):
-		print(width)
-		if width - 250 > 200:
+		if not self.appbar_ctrl.title.visible:
+			self.search_box.width = width - 80
+		elif width - 250 > 200:
 			self.search_box.width = width - 250
 		else:
 			self.search_box.width = 200
