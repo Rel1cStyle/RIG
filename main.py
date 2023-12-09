@@ -244,7 +244,6 @@ class RRIGApp(ft.View):
 		##### 検索ボックス #####
 		self.search_box = ft.TextField(
 			label="Search",
-			expand=False,
 			on_submit=self.search_box_on_submit
 		)
 
@@ -256,11 +255,11 @@ class RRIGApp(ft.View):
 					self.search_box,
 					self.search_button
 				],
-				expand=True,
+				expand=False,
 				wrap=True,
 				alignment=ft.MainAxisAlignment.END
 			),
-			expand=True,
+			expand=False,
 			alignment=ft.alignment.center,
 			padding=ft.padding.only(0, 0, 15, 0)
 		)
@@ -284,9 +283,18 @@ class RRIGApp(ft.View):
 		self.appbar_ctrl.title.visible = width > 500
 		await self.update_async()
 
+	async def adapt_search_box(self, width):
+		print(width)
+		if width - 250 > 200:
+			self.search_box.width = width - 250
+		else:
+			self.search_box.width = 200
+		await self.update_async()
+
 	async def on_resize(self, e: ft.ControlEvent):
 		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
 		await self.adapt_appbar(width)
+		await self.adapt_search_box(width)
 
 	# レジェンドボックス
 	async def switch_legend_selection(self, legend_name: str, enable: bool=None):
@@ -875,6 +883,7 @@ async def main(page: ft.Page):
 
 	# サイズ変更時イベント
 	async def on_resize(e: ft.ControlEvent):
+		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
 		# ページに存在するビューをループして on_resize() が実装されていれば実行する
 		for view in page.views:
 			if hasattr(view, "on_resize"): await view.on_resize(e)
@@ -901,6 +910,7 @@ async def main(page: ft.Page):
 			page.route = "/"
 			page.title = App.name
 			await main_ctrl.adapt_appbar(page.width)
+			await main_ctrl.adapt_search_box(page.width)
 			await page.update_async()
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
 			if not init_load: await load_image(); init_load = True
