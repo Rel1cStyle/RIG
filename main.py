@@ -249,8 +249,7 @@ class RRIGApp(ft.View):
 					[
 						self.filter_box_expand_button,
 						self.tag_box_expand_button,
-						self.search_result_text,
-						self.sort_dropdown
+						self.search_result_text
 					]
 				),
 				self.filter_control_box,
@@ -271,6 +270,7 @@ class RRIGApp(ft.View):
 		self.search_box_base = ft.Container(
 			ft.Row(
 				[
+					self.sort_dropdown,
 					self.search_box,
 					self.search_button
 				],
@@ -299,14 +299,14 @@ class RRIGApp(ft.View):
 
 	# サイズ変更イベント
 	async def adapt_appbar(self, width):
-		self.appbar_ctrl.title.visible = width > 500
+		self.appbar_ctrl.title.visible = width > 700
 		await self.update_async()
 
 	async def adapt_search_box(self, width):
 		if not self.appbar_ctrl.title.visible:
 			self.search_box.width = width - 80
-		elif width - 250 > 200:
-			self.search_box.width = width - 250
+		elif width - 600 > 200:
+			self.search_box.width = width - 600
 		else:
 			self.search_box.width = 200
 		await self.update_async()
@@ -346,7 +346,7 @@ class RRIGApp(ft.View):
 		await self.load_images()
 
 	async def sort_on_change(self, e):
-			await self.sort_images(e.control.value)
+		await self.sort_images(e.control.value)
 
 	async def reset_legend_selection(self):
 		"""レジェンドの選択状態をリセットします。"""
