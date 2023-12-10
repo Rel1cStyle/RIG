@@ -3,6 +3,7 @@ import datetime
 import math
 #import glob
 #import json
+import operator
 import os
 #import base64
 import logging
@@ -31,6 +32,7 @@ def lists_match(l1: list, l2: list) -> bool:
 
 class Images():
 	data: dict = {}
+	list: list = []
 	legends: dict = {}
 	tags: dict = {}
 
@@ -45,9 +47,12 @@ class Images():
 		#	Images.data = json.loads(k.read())
 		res = requests.get(App.api_url + "/image/list")
 		Images.data = res.json()
+		Images.list = []
 
 		print("- Loading Legends & Tag List")
 		for k, v in Images.data.items():
+			Images.list.append({"name": k} | v)
+
 			legend = str(v["character"])
 			skin = str(v["skin"])
 
@@ -121,6 +126,7 @@ class RRIGApp(ft.View):
 		self.selected_legends = [] # 選択中のレジェンド一覧
 		self.selected_skins = [] # 選択中のスキン一覧
 		self.selected_tags = [] # 選択中のタグ一覧
+		self.sort_type = "name_asc" # 並べ替えの種類
 
 		##### 画像タイル #####
 		self.image_grid = ft.GridView(
@@ -221,6 +227,18 @@ class RRIGApp(ft.View):
 			visible=False
 		)
 
+		self.sort_dropdown = ft.Dropdown(
+			value=self.sort_type,
+			options=[
+				ft.dropdown.Option("name_asc", "名前 (昇順)"),
+				ft.dropdown.Option("name_desc", "名前 (降順)"),
+				ft.dropdown.Option("release_date_desc", "公開日 (新しい順)"),
+				ft.dropdown.Option("release_date_asc", "公開日 (古い順)")
+			],
+			alignment=ft.alignment.center_left,
+			on_change=self.sort_on_change
+		)
+
 		# 検索結果テキスト
 		self.search_result_text = ft.Text("")
 
@@ -231,7 +249,8 @@ class RRIGApp(ft.View):
 					[
 						self.filter_box_expand_button,
 						self.tag_box_expand_button,
-						self.search_result_text
+						self.search_result_text,
+						self.sort_dropdown
 					]
 				),
 				self.filter_control_box,
@@ -320,6 +339,14 @@ class RRIGApp(ft.View):
 
 		# スキン一覧を更新する
 		await self.load_skins(self.selected_legends)
+
+	# 並べ替え
+	async def sort_images(self, key):
+		self.sort_type = key
+		await self.load_images()
+
+	async def sort_on_change(self, e):
+			await self.sort_images(e.control.value)
 
 	async def reset_legend_selection(self):
 		"""レジェンドの選択状態をリセットします。"""
@@ -486,7 +513,22 @@ class RRIGApp(ft.View):
 
 		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_box.value} | Tags: {str(self.selected_tags)}")
 
-		for k, v in Images.data.items():
+		print("- Sort type: " + self.sort_type)
+		if self.sort_type == "name_asc": # 名前 (昇順)
+			data = sorted(Images.list, key=lambda x: (x["character"], x["skin"], str(x["number"]).zfill(3)), reverse=False)
+		elif self.sort_type == "name_desc": # 名前 (降順)
+			data = sorted(Images.list, key=lambda x: (x["character"], x["skin"], str(x["number"]).zfill(3)), reverse=True)
+		elif self.sort_type == "release_date_desc": # 公開日 (新しい順)
+			data = sorted(Images.list, key=lambda x: (float(x["creation_date"])), reverse=True)
+		elif self.sort_type == "release_date_asc": # 公開日 (古い順)
+			data = sorted(Images.list, key=lambda x: (float(x["creation_date"])), reverse=False)
+		else: # それ以外
+			data = sorted(Images.list, key=lambda x: (x["character"], x["skin"], str(x["number"]).zfill(3)), reverse=False)
+		#data = dict(sorted(Images.data.items()))
+		#data = sorted(Images.list, key=lambda x: (x["character"], x["skin"], x["number"]))
+		#data = sorted(Images.list, key=lambda x: (float(x["creation_date"])), reverse=True)
+
+		for v in data:
 			# レジェンドで絞り込み
 			if len(self.selected_legends) >= 1: # 選択されたレジェンドではない画像を除外
 				if v["character"] not in self.selected_legends:
@@ -506,10 +548,10 @@ class RRIGApp(ft.View):
 					continue 
 
 			# 検索ワードで絞り込み
-			if self.search_word.lower() not in k.lower(): continue
+			if self.search_word.lower() not in v["name"].lower(): continue
 
 			count += 1
-			#print(f"- {image} ({str(count)}/{len(Images.data)})")
+			#print(f"- {image} ({str(count)}/{len(data)})")
 
 			# タグボタン部品を生成
 			tag_buttons = []
@@ -558,7 +600,7 @@ class RRIGApp(ft.View):
 					controls=[
 						# 画像
 						ft.Image(
-							src=App.api_url + "/image/preview/" + k,
+							src=App.api_url + "/image/preview/" + v["name"],
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
@@ -568,7 +610,7 @@ class RRIGApp(ft.View):
 								[
 									# 画像情報テキスト
 									ft.Text(
-										v["character"] + " | " + v["skin"] + " - " + v["number"],
+										v["character"] + " | " + v["skin"] + " - " + v["number"] + "\n" + datetime.datetime.fromtimestamp(float(v["creation_date"])).strftime("%Y/%m/%d"),
 										color="white",
 										#bgcolor="black",
 										size=14,
@@ -580,7 +622,7 @@ class RRIGApp(ft.View):
 								alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
 								vertical_alignment=ft.CrossAxisAlignment.END
 							),
-							key=k,
+							key=v["name"],
 							margin=ft.padding.all(10),
 							alignment=ft.alignment.bottom_center,
 							on_click=self.image_download_button_on_click
