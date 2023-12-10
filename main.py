@@ -126,7 +126,7 @@ class RRIGApp(ft.View):
 		self.selected_legends = [] # 選択中のレジェンド一覧
 		self.selected_skins = [] # 選択中のスキン一覧
 		self.selected_tags = [] # 選択中のタグ一覧
-		self.sort_type = "name_asc" # 並べ替えの種類
+		self.sort_type = "release_date_desc" # 並べ替えの種類
 
 		##### 画像タイル #####
 		self.image_grid = ft.GridView(
