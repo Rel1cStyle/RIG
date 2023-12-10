@@ -377,7 +377,7 @@ class RRIGApp(ft.View):
 			if skin_name == c.key:
 				c.value = enable
 				break
-		
+
 		print(f"Selected Skins: {str(self.selected_skins)}")
 
 	async def reset_skin_selection(self):
@@ -513,6 +513,7 @@ class RRIGApp(ft.View):
 
 		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_box.value} | Tags: {str(self.selected_tags)}")
 
+		# 並べ替え
 		print("- Sort type: " + self.sort_type)
 		if self.sort_type == "name_asc": # 名前 (昇順)
 			data = sorted(Images.list, key=lambda x: (x["character"], x["skin"], str(x["number"]).zfill(3)), reverse=False)
