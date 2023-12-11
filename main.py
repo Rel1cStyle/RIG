@@ -126,7 +126,7 @@ class RRIGApp(ft.View):
 		self.selected_legends = [] # 選択中のレジェンド一覧
 		self.selected_skins = [] # 選択中のスキン一覧
 		self.selected_tags = [] # 選択中のタグ一覧
-		self.sort_type = "name_asc" # 並べ替えの種類
+		self.sort_type = "release_date_desc" # 並べ替えの種類
 
 		##### 画像タイル #####
 		self.image_grid = ft.GridView(
@@ -249,8 +249,7 @@ class RRIGApp(ft.View):
 					[
 						self.filter_box_expand_button,
 						self.tag_box_expand_button,
-						self.search_result_text,
-						self.sort_dropdown
+						self.search_result_text
 					]
 				),
 				self.filter_control_box,
@@ -271,6 +270,7 @@ class RRIGApp(ft.View):
 		self.search_box_base = ft.Container(
 			ft.Row(
 				[
+					self.sort_dropdown,
 					self.search_box,
 					self.search_button
 				],
@@ -299,14 +299,14 @@ class RRIGApp(ft.View):
 
 	# サイズ変更イベント
 	async def adapt_appbar(self, width):
-		self.appbar_ctrl.title.visible = width > 500
+		self.appbar_ctrl.title.visible = width > 700
 		await self.update_async()
 
 	async def adapt_search_box(self, width):
 		if not self.appbar_ctrl.title.visible:
 			self.search_box.width = width - 80
-		elif width - 250 > 200:
-			self.search_box.width = width - 250
+		elif width - 600 > 200:
+			self.search_box.width = width - 600
 		else:
 			self.search_box.width = 200
 		await self.update_async()
@@ -346,7 +346,7 @@ class RRIGApp(ft.View):
 		await self.load_images()
 
 	async def sort_on_change(self, e):
-			await self.sort_images(e.control.value)
+		await self.sort_images(e.control.value)
 
 	async def reset_legend_selection(self):
 		"""レジェンドの選択状態をリセットします。"""
@@ -377,7 +377,7 @@ class RRIGApp(ft.View):
 			if skin_name == c.key:
 				c.value = enable
 				break
-		
+
 		print(f"Selected Skins: {str(self.selected_skins)}")
 
 	async def reset_skin_selection(self):
@@ -513,6 +513,7 @@ class RRIGApp(ft.View):
 
 		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_box.value} | Tags: {str(self.selected_tags)}")
 
+		# 並べ替え
 		print("- Sort type: " + self.sort_type)
 		if self.sort_type == "name_asc": # 名前 (昇順)
 			data = sorted(Images.list, key=lambda x: (x["character"], x["skin"], str(x["number"]).zfill(3)), reverse=False)
