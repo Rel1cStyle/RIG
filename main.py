@@ -594,6 +594,12 @@ class RRIGApp(ft.View):
 				on_click=self.image_download_button_on_click
 			)"""
 
+			# 画像の投稿日
+			release_date = datetime.datetime.fromtimestamp(
+				float(v["creation_date"]),
+				datetime.timezone(datetime.timedelta(hours=9))
+			).strftime("%Y/%m/%d")
+
 			# 画像を生成
 			self.image_grid.controls.append(
 				ft.Stack(
@@ -610,7 +616,7 @@ class RRIGApp(ft.View):
 								[
 									# 画像情報テキスト
 									ft.Text(
-										v["character"] + " | " + v["skin"] + " - " + v["number"] + "\n" + datetime.datetime.fromtimestamp(float(v["creation_date"])).strftime("%Y/%m/%d"),
+										v["character"] + " | " + v["skin"] + " - " + v["number"] + "\n" + release_date,
 										color="white",
 										#bgcolor="black",
 										size=14,
