@@ -235,6 +235,7 @@ class RRIGApp(ft.View):
 				ft.dropdown.Option("release_date_desc", "公開日 (新しい順)"),
 				ft.dropdown.Option("release_date_asc", "公開日 (古い順)")
 			],
+			width=200,
 			alignment=ft.alignment.center_left,
 			on_change=self.sort_on_change
 		)
@@ -575,9 +576,10 @@ class RRIGApp(ft.View):
 				# 選択中のタグは色を変えて枠線をつける
 				if tag in self.selected_tags:
 					tb.bgcolor = ft.colors.BLACK
-					tb.border = ft.border.all(2, color=ft.colors.WHITE)
+					tb.border = ft.border.all(2.2, color=ft.colors.WHITE)
 				else:
 					tb.bgcolor = ft.colors.BLACK54
+					tb.border = ft.border.all(1.2, color=ft.colors.WHITE)
 				# タグ部品一覧へ追加
 				tag_buttons.append(
 					tb
