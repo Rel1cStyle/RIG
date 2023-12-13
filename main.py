@@ -644,6 +644,7 @@ class RRIGApp(ft.View):
 						# タグ
 						ft.Row(
 							tag_buttons,
+							wrap=True,
 							alignment=ft.MainAxisAlignment.START,
 							left=5,
 							right=5,
