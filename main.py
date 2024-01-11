@@ -261,19 +261,26 @@ class RRIGApp(ft.View):
 		)
 
 		##### 検索ボックス #####
-		self.search_box = ft.TextField(
-			label="Search",
-			on_submit=self.search_box_on_submit
+		self.search_button = ft.IconButton(ft.icons.SEARCH, on_click=self.search_button_on_click)
+		self.search_text = ft.TextField(label="Search", on_submit=self.search_box_on_submit)
+		self.search_box = ft.Row(
+			[
+				self.search_text,
+				self.search_button
+			],
+			expand=False,
+			wrap=True,
+			alignment=ft.MainAxisAlignment.CENTER
 		)
 
-		self.search_button = ft.IconButton(ft.icons.SEARCH, on_click=self.search_button_on_click)
+		self.search_button_mobile = ft.IconButton(ft.icons.SEARCH, on_click=self.search_button_mobile_on_click)
 
 		self.search_box_base = ft.Container(
 			ft.Row(
 				[
 					self.sort_dropdown,
 					self.search_box,
-					self.search_button
+					self.search_button_mobile
 				],
 				expand=False,
 				wrap=True,
@@ -283,6 +290,8 @@ class RRIGApp(ft.View):
 			alignment=ft.alignment.center,
 			padding=ft.padding.only(0, 0, 15, 0)
 		)
+
+		self.search_box_mobile_showing = False
 
 		self.appbar_ctrl = appbar_ctrl()
 		self.appbar_ctrl.toolbar_height = 80
@@ -298,18 +307,38 @@ class RRIGApp(ft.View):
 
 		super().__init__("/", controls=controls)
 
+	# モバイル用検索ボタンクリックイベント
+	async def search_button_mobile_on_click(self, e):
+		self.search_box_mobile_showing = not self.search_box_mobile_showing
+		self.sort_dropdown.visible = not self.search_box_mobile_showing
+		self.search_text.visible = self.search_box_mobile_showing
+		self.search_text.width = self.page.width - 100
+		if self.search_box_mobile_showing: self.search_button_mobile.icon = ft.icons.CLOSE
+		else: self.search_button_mobile.icon = ft.icons.SEARCH
+		await self.update_async()
+
 	# サイズ変更イベント
 	async def adapt_appbar(self, width):
-		self.appbar_ctrl.title.visible = width > 700
+		self.appbar_ctrl.title.visible = width > 900
 		await self.update_async()
 
 	async def adapt_search_box(self, width):
-		if not self.appbar_ctrl.title.visible:
-			self.search_box.width = width - 80
-		elif width - 600 > 200:
-			self.search_box.width = width - 600
-		else:
-			self.search_box.width = 200
+		if width < 480: # モバイル
+			if not self.search_box_mobile_showing:
+				self.search_text.visible = False
+				self.search_button.visible = False
+				self.search_button_mobile.visible = True
+		else: # 通常
+			self.search_box_mobile_showing = False
+			self.search_button_mobile.icon = ft.icons.SEARCH
+			self.sort_dropdown.visible = True
+			self.search_text.visible = True
+			self.search_button.visible = True
+			self.search_button_mobile.visible = False
+			if not self.appbar_ctrl.title.visible:
+				self.search_text.width = width - self.sort_dropdown.width - 100
+			else:
+				self.search_text.width = width - 600
 		await self.update_async()
 
 	async def on_resize(self, e: ft.ControlEvent):
@@ -489,7 +518,7 @@ class RRIGApp(ft.View):
 		await self.load_images()
 
 	async def search_button_on_click(self, e):
-		self.search_word = self.search_box.value
+		self.search_word = self.search_text.value
 		await self.load_images()
 
 	# 画像ダウンロードボタンクリック時
@@ -512,7 +541,7 @@ class RRIGApp(ft.View):
 		self.image_grid.controls = []
 		count = 0
 
-		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_box.value} | Tags: {str(self.selected_tags)}")
+		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_text.value} | Tags: {str(self.selected_tags)}")
 
 		# 並べ替え
 		print("- Sort type: " + self.sort_type)
