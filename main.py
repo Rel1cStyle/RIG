@@ -781,7 +781,7 @@ class DLAcceptView(ft.View):
 
 		self.twitter_button = ft.FilledButton(
 			"Twitter",
-			url="https://x.com/Apex_tyaneko",
+			url="https://twitter.com/intent/follow?screen_name=Apex_tyaneko",
 			url_target="_blank",
 			on_click=self.follow_twitter
 		)
