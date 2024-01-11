@@ -733,38 +733,54 @@ class RRIGApp(ft.View):
 class DLPreviewView(ft.View):
 	def __init__(self, image_name: str):
 		self.image_name = image_name
+		data = Images.data[image_name]
+		release_date = datetime.datetime.fromtimestamp(
+			float(data["creation_date"]),
+			datetime.timezone(datetime.timedelta(hours=9))
+		).strftime("%Y/%m/%d")
 		controls = [
 			appbar_ctrl(),
 			ft.Container(
+				# プレビュー画像 & 画像名 & ダウンロードボタン
 				ft.Column(
 					[
-						# プレビュー画像 & 画像名 & ダウンロードボタン
-						ft.Column(
+						ft.Image(
+							src=App.api_url + "/image/preview/" + image_name,
+							fit=ft.ImageFit.CONTAIN,
+							repeat=ft.ImageRepeat.NO_REPEAT,
+							border_radius=ft.border_radius.all(0)
+						),
+						ft.Text(
+							data["character"] + " - " + data["skin"],
+							style=ft.TextThemeStyle.HEADLINE_SMALL
+						),
+						ft.Row(
 							[
-								ft.Image(
-									src=App.api_url + "/image/preview/" + image_name,
-									fit=ft.ImageFit.CONTAIN,
-									repeat=ft.ImageRepeat.NO_REPEAT,
-									border_radius=ft.border_radius.all(5)
-								),
-								ft.Text(
-									image_name
-								),
-								ft.FilledButton(
-									"Download",
-									icon=ft.icons.DOWNLOAD,
-									on_click=self.download
-								)
+								ft.Text("通し番号", style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.RIGHT),
+								ft.Text(data["number"], style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.NORMAL),
 							],
-							expand=False,
 							alignment=ft.MainAxisAlignment.CENTER,
-							horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+							vertical_alignment=ft.CrossAxisAlignment.CENTER
+						),
+						ft.Row(
+							[
+								ft.Text("公開日", style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.RIGHT),
+								ft.Text(release_date, style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.NORMAL)
+							],
+							alignment=ft.MainAxisAlignment.CENTER,
+							vertical_alignment=ft.CrossAxisAlignment.CENTER
+						),
+						ft.FilledButton(
+							"ダウンロード",
+							icon=ft.icons.DOWNLOAD,
+							on_click=self.download
 						)
 					],
 					expand=True,
-					alignment=ft.MainAxisAlignment.SPACE_AROUND,
-					horizontal_alignment=ft.CrossAxisAlignment.START
+					alignment=ft.MainAxisAlignment.CENTER,
+					horizontal_alignment=ft.CrossAxisAlignment.CENTER
 				),
+				#padding=ft.padding.only(200, 0, 200, 0),
 				expand=True,
 				alignment=ft.alignment.center
 			)
@@ -786,7 +802,7 @@ class DLAcceptView(ft.View):
 			on_click=self.follow_twitter
 		)
 		self.download_button = ft.FilledButton(
-			"Download",
+			"ダウンロード",
 			url=App.api_url + "/image/download/" + image_name,
 			url_target="_blank",
 			icon=ft.icons.DOWNLOAD,
@@ -804,11 +820,14 @@ class DLAcceptView(ft.View):
 			vertical_alignment=ft.CrossAxisAlignment.CENTER
 		)
 		self.preview_image = ft.Image(
-			App.api_url + "/image/preview/" + image_name,
-			width=400,
-			fit=ft.ImageFit.NONE,
-			border_radius=ft.border_radius.all(100),
-			rotate=ft.Rotate(angle=0.1 * math.pi, alignment=ft.alignment.center_left)
+			"sample1.png",
+			fit=ft.ImageFit.CONTAIN,
+			expand=1
+			#App.api_url + "/image/preview/" + image_name
+			#width=400,
+			#fit=ft.ImageFit.NONE,
+			#border_radius=ft.border_radius.all(0),
+			#rotate=ft.Rotate(angle=0.1 * math.pi, alignment=ft.alignment.center_left)
 		)
 
 		controls = [
@@ -822,8 +841,13 @@ class DLAcceptView(ft.View):
 									ft.Column(
 										[
 											ft.Text("ダウンロード条件", style=ft.TextThemeStyle.DISPLAY_SMALL, weight=ft.FontWeight.BOLD),
-											ft.Text("このフリー画像を使用する際は、\n@Apex_tyaneko をフォローしてから使用してください。", style=ft.TextThemeStyle.BODY_LARGE, size=18),
-											ft.Text("文字入れ・立ち絵入れは○\n\"それ以外\"の加工はおやめください。", style=ft.TextThemeStyle.BODY_LARGE, size=18),
+											ft.Text("このフリー画像を使用する際は、\nTwitter @Apex_tyaneko をフォローしてから使用してください。", style=ft.TextThemeStyle.BODY_LARGE, size=18),
+											ft.Column(
+												[
+													ft.Text("使用条件", style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, size=18),
+													ft.Text("・文字入れ: ○\n・立ち絵入れ: ○\n・上記以外の加工: ×", style=ft.TextThemeStyle.BODY_LARGE, size=18)
+												]
+											),
 											self.button_ctrls
 										],
 										scroll=ft.ScrollMode.ALWAYS,
