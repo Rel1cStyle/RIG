@@ -96,10 +96,10 @@ def loading_ctrl() -> ft.Container:
 
 def appbar_ctrl() -> ft.AppBar:
 	return ft.AppBar(
-		leading=ft.Container(
-			ft.Image("icon.png"),
-			padding=ft.padding.only(10, 0, 0, 0)
-		),
+		#leading=ft.Container(
+		#	ft.Image("icon.png"),
+		#	padding=ft.padding.only(10, 0, 0, 0)
+		#),
 		title=ft.Column(
 			[
 				# タイトル
