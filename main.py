@@ -45,7 +45,8 @@ class Images():
 
 		#with open("data/images.json", mode="rb") as k:
 		#	Images.data = json.loads(k.read())
-		res = requests.get(App.api_url + "/image/list")
+		#res = requests.get(App.api_url + "/image/list")
+		res = requests.get(App.api_url + "/image/list?with_previews=True") # base64 形式のプレビュー付きのリストを取得する
 		Images.data = res.json()
 		Images.list = []
 
@@ -643,7 +644,8 @@ class RRIGApp(ft.View):
 					controls=[
 						# 画像
 						ft.Image(
-							src=App.api_url + "/image/preview/" + v["name"],
+							#src=App.api_url + "/image/preview/" + v["name"],
+							src_base64=v["preview_base64"],
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
@@ -779,7 +781,8 @@ class DLPreviewView(ft.View):
 				ft.Column(
 					[
 						ft.Image(
-							src=App.api_url + "/image/preview/" + image_name,
+							#src=App.api_url + "/image/preview/" + image_name,
+							src_base64=data["preview_base64"],
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(0)
