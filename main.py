@@ -46,7 +46,7 @@ class Images():
 		#with open("data/images.json", mode="rb") as k:
 		#	Images.data = json.loads(k.read())
 		#res = requests.get(App.api_url + "/image/list")
-		res = requests.get(App.api_url + "/image/list?with_previews=True") # base64 形式のプレビュー付きのリストを取得する
+		res = requests.get(App.api_url + "/image/list", params={"with_previews": "True"}) # base64 形式のプレビュー付きのリストを取得する
 		Images.data = res.json()
 		Images.list = []
 
