@@ -5,7 +5,7 @@ class App():
 
 	version = "0.1"
 
-	api_url = "https://api.rig.rel1c.work"
+	api_url = "http://rig-api-thunder.rel1c.work"
 
 	if path.isfile("_commit_sha.txt"):
 		with open("_commit_sha.txt", mode="r") as f:
