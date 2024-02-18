@@ -3,9 +3,9 @@ from os import path
 class App():
 	name = "Rel1cStyle RIG"
 
-	version = "0.1"
+	version = "0.2"
 
-	api_url = "https://api.rig.rel1c.work"
+	api_url = "https://rig-api-thunder.rel1c.work"
 
 	if path.isfile("_commit_sha.txt"):
 		with open("_commit_sha.txt", mode="r") as f:

@@ -45,7 +45,8 @@ class Images():
 
 		#with open("data/images.json", mode="rb") as k:
 		#	Images.data = json.loads(k.read())
-		res = requests.get(App.api_url + "/image/list")
+		#res = requests.get(App.api_url + "/image/list")
+		res = requests.get(App.api_url + "/image/list", params={"with_previews": "True"}) # base64 形式のプレビュー付きのリストを取得する
 		Images.data = res.json()
 		Images.list = []
 
@@ -96,10 +97,14 @@ def loading_ctrl() -> ft.Container:
 
 def appbar_ctrl() -> ft.AppBar:
 	return ft.AppBar(
+		#leading=ft.Container(
+		#	ft.Image("icon.png"),
+		#	padding=ft.padding.only(10, 0, 0, 0)
+		#),
 		title=ft.Column(
 			[
 				# タイトル
-				ft.Text(App.name, size=16),
+				#ft.Text(App.name, size=16),
 				# バージョン表記テキスト
 				ft.Container(
 					ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.LEFT),
@@ -312,7 +317,7 @@ class RRIGApp(ft.View):
 		self.search_box_mobile_showing = not self.search_box_mobile_showing
 		self.sort_dropdown.visible = not self.search_box_mobile_showing
 		self.search_text.visible = self.search_box_mobile_showing
-		self.search_text.width = self.page.width - 100
+		self.search_text.width = self.page.width - 100 - 56
 		if self.search_box_mobile_showing: self.search_button_mobile.icon = ft.icons.CLOSE
 		else: self.search_button_mobile.icon = ft.icons.SEARCH
 		await self.update_async()
@@ -328,6 +333,7 @@ class RRIGApp(ft.View):
 				self.search_text.visible = False
 				self.search_button.visible = False
 				self.search_button_mobile.visible = True
+				self.search_text.width = self.search_text.width
 		else: # 通常
 			self.search_box_mobile_showing = False
 			self.search_button_mobile.icon = ft.icons.SEARCH
@@ -336,9 +342,9 @@ class RRIGApp(ft.View):
 			self.search_button.visible = True
 			self.search_button_mobile.visible = False
 			if not self.appbar_ctrl.title.visible:
-				self.search_text.width = width - self.sort_dropdown.width - 100
+				self.search_text.width = width - self.sort_dropdown.width - 100 - 56
 			else:
-				self.search_text.width = width - 600
+				self.search_text.width = width - 600 - 56
 		await self.update_async()
 
 	async def on_resize(self, e: ft.ControlEvent):
@@ -638,7 +644,8 @@ class RRIGApp(ft.View):
 					controls=[
 						# 画像
 						ft.Image(
-							src=App.api_url + "/image/preview/" + v["name"],
+							#src=App.api_url + "/image/preview/" + v["name"],
+							src_base64=v["preview_base64"],
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
@@ -774,7 +781,8 @@ class DLPreviewView(ft.View):
 				ft.Column(
 					[
 						ft.Image(
-							src=App.api_url + "/image/preview/" + image_name,
+							#src=App.api_url + "/image/preview/" + image_name,
+							src_base64=data["preview_base64"],
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(0)
