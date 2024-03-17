@@ -66,13 +66,13 @@ class Images():
 			if save_previews:
 				save_preview_success = False
 				print(" - Save preview image: " + k)
-				try:
-					while not save_preview_success: # 保存に失敗した場合は再試行する
+				while not save_preview_success: # 保存に失敗した場合は再試行する
+					try:
 						await page.client_storage.set_async("rel1cstyle.rig.previews." + k, v["preview_base64"])
 						v["preview_base64"] = None
 						save_preview_success = True
-				except Exception as e:
-					asyncio.sleep(5)
+					except Exception as e:
+						await asyncio.sleep(10)
 
 			# 保存されていないプレビューを取得して保存する
 			if await page.client_storage.get_async("rel1cstyle.rig.previews." + k) == None:
