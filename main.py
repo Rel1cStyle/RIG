@@ -36,7 +36,7 @@ class Images():
 	legends: dict = {}
 	tags: dict = {}
 
-	async def load():
+	async def load(page: ft.Page):
 		print("Loading Images...")
 
 		skin_base = {"count": 0}
@@ -46,12 +46,37 @@ class Images():
 		#with open("data/images.json", mode="rb") as k:
 		#	Images.data = json.loads(k.read())
 		#res = requests.get(App.api_url + "/image/list")
-		res = requests.get(App.api_url + "/image/list", params={"with_previews": "True"}) # base64 形式のプレビュー付きのリストを取得する
+
+		print("- Fetching image list from API")
+		save_previews = False
+		if len(await page.client_storage.get_keys_async("rel1cstyle.rig.previews.")) == 0:
+			print(" - With Previews: True")
+			save_previews = True
+			res = requests.get(App.api_url + "/image/list", params={"with_previews": "True"}) # base64 形式のプレビュー付きのリストを取得する
+		else:
+			print(" - With Previews: False")
+			res = requests.get(App.api_url + "/image/list", params={"with_previews": "False"})
+
 		Images.data = res.json()
 		Images.list = []
 
 		print("- Loading Legends & Tag List")
 		for k, v in Images.data.items():
+			# 初回取得時はクライアントストレージへプレビューを保存する
+			if save_previews:
+				print(" - Save preview image: " + k)
+				await page.client_storage.set_async("rel1cstyle.rig.previews." + k, v["preview_base64"])
+				v["preview_base64"] = None
+			# 保存されていないプレビューを取得して保存する
+			if await page.client_storage.get_async("rel1cstyle.rig.previews." + k) == None:
+				print(" - Get preview image from API: " + k)
+				try:
+					preview = requests.get(App.api_url + "/image/preview/" + k, params={"type": "base64"}).content.decode()
+					await page.client_storage.set_async("rel1cstyle.rig.previews." + k, preview)
+				except Exception as e:
+					print(" - Failed to get preview image")
+					print(str(e))
+
 			Images.list.append({"name": k} | v)
 
 			legend = str(v["character"])
@@ -645,7 +670,8 @@ class RRIGApp(ft.View):
 						# 画像
 						ft.Image(
 							#src=App.api_url + "/image/preview/" + v["name"],
-							src_base64=v["preview_base64"],
+							#src_base64=v["preview_base64"],
+							src_base64=await self.page.client_storage.get_async("rel1cstyle.rig.previews." + v["name"]),
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
@@ -774,19 +800,21 @@ class DLPreviewView(ft.View):
 			float(data["creation_date"]),
 			datetime.timezone(datetime.timedelta(hours=9))
 		).strftime("%Y/%m/%d")
+
+		self.preview_image = ft.Image(
+			#src=App.api_url + "/image/preview/" + image_name,
+			#src_base64=data["preview_base64"],
+			fit=ft.ImageFit.CONTAIN,
+			repeat=ft.ImageRepeat.NO_REPEAT,
+			border_radius=ft.border_radius.all(0)
+		)
 		controls = [
 			appbar_ctrl(),
 			ft.Container(
 				# プレビュー画像 & 画像名 & ダウンロードボタン
 				ft.Column(
 					[
-						ft.Image(
-							#src=App.api_url + "/image/preview/" + image_name,
-							src_base64=data["preview_base64"],
-							fit=ft.ImageFit.CONTAIN,
-							repeat=ft.ImageRepeat.NO_REPEAT,
-							border_radius=ft.border_radius.all(0)
-						),
+						self.preview_image,
 						ft.Text(
 							data["character"] + " - " + data["skin"],
 							style=ft.TextThemeStyle.HEADLINE_SMALL
@@ -1037,7 +1065,10 @@ async def main(page: ft.Page):
 				if troute.match("/image/preview/:name"):
 					if troute.name in Images.data:
 						if previous_route.startswith("/image/download/") and pop_flag == False: page.views.pop()
+						# ページの初期化
 						view = DLPreviewView(troute.name)
+						# プレビューの読み込み
+						view.preview_image.src_base64 = await page.client_storage.get_async("rel1cstyle.rig.previews." + troute.name)
 						# ビューを生成
 						page.views.append(
 							view
@@ -1130,7 +1161,7 @@ async def main(page: ft.Page):
 	page.on_resize = on_resize
 
 	# 画像一覧を読み込み (APIから取得)
-	await Images.load()
+	await Images.load(page)
 
 	# ページを移動する URLを直接入力してアクセスすると入力したパスのページが表示される
 	await page.go_async(page.route, False)
