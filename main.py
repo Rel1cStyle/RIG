@@ -45,7 +45,7 @@ class Images():
 
 		#with open("data/images.json", mode="rb") as k:
 		#	Images.data = json.loads(k.read())
-		res = requests.get(App.api_url + "/image/list")
+		res = requests.get(App.API_URL + "/image/list")
 
 		"""print("- Fetching image list from API")
 		save_previews = False
@@ -139,7 +139,13 @@ def appbar_ctrl() -> ft.AppBar:
 				#ft.Text(App.name, size=16),
 				# バージョン表記テキスト
 				ft.Container(
-					ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.LEFT),
+					ft.Column(
+						[
+							ft.Text(f"Version {App.VERSION}-{App.BRANCH}.{App.COMMIT_SHA} [{App.ENV}]", size=12, text_align=ft.TextAlign.LEFT),
+							ft.Text(f"Developed by Milkeyyy", size=11, text_align=ft.TextAlign.LEFT)
+						],
+						spacing=2
+					),
 					padding=ft.padding.only(0, 0, 0, 0),
 					alignment=ft.alignment.center_left,
 					expand=False
@@ -208,7 +214,7 @@ class RRIGApp(ft.View):
 					[
 						ft.Row(
 							[
-								ft.Text("Legends", style=ft.TextThemeStyle.TITLE_LARGE),
+								ft.Text("Legends", theme_style=ft.TextThemeStyle.TITLE_LARGE),
 								ft.FilledTonalButton("Reset", on_click=self.legend_reset_button_on_click)
 							]
 						),
@@ -220,7 +226,7 @@ class RRIGApp(ft.View):
 					[
 						ft.Row(
 							[
-								ft.Text("Skin", style=ft.TextThemeStyle.TITLE_LARGE),
+								ft.Text("Skin", theme_style=ft.TextThemeStyle.TITLE_LARGE),
 								ft.FilledTonalButton("Reset", on_click=self.skin_reset_button_on_click)
 							]
 						),
@@ -251,7 +257,7 @@ class RRIGApp(ft.View):
 					[
 						ft.Row(
 							[
-								ft.Text("Tag", style=ft.TextThemeStyle.TITLE_LARGE),
+								ft.Text("Tag", theme_style=ft.TextThemeStyle.TITLE_LARGE),
 								ft.FilledTonalButton("Reset", on_click=self.tag_reset_button_on_click)
 							]
 						),
@@ -676,7 +682,7 @@ class RRIGApp(ft.View):
 					controls=[
 						# 画像
 						ft.Image(
-							src=App.api_url + "/image/preview/" + v["name"],
+							src=App.API_URL + "/image/preview/" + v["name"],
 							#src_base64=v["preview_base64"],
 							#src_base64=await self.page.client_storage.get_async("rel1cstyle.rig.previews." + v["name"]),
 							fit=ft.ImageFit.CONTAIN,
@@ -809,7 +815,7 @@ class DLPreviewView(ft.View):
 		).strftime("%Y/%m/%d")
 
 		self.preview_image = ft.Image(
-			src=App.api_url + "/image/preview/" + image_name,
+			src=App.API_URL + "/image/preview/" + image_name,
 			#src_base64=data["preview_base64"],
 			fit=ft.ImageFit.CONTAIN,
 			repeat=ft.ImageRepeat.NO_REPEAT,
@@ -824,20 +830,20 @@ class DLPreviewView(ft.View):
 						self.preview_image,
 						ft.Text(
 							data["character"] + " - " + data["skin"],
-							style=ft.TextThemeStyle.HEADLINE_SMALL
+							theme_style=ft.TextThemeStyle.HEADLINE_SMALL
 						),
 						ft.Row(
 							[
-								ft.Text("通し番号", style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.RIGHT),
-								ft.Text(data["number"], style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.NORMAL),
+								ft.Text("通し番号", theme_style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.RIGHT),
+								ft.Text(data["number"], theme_style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.NORMAL),
 							],
 							alignment=ft.MainAxisAlignment.CENTER,
 							vertical_alignment=ft.CrossAxisAlignment.CENTER
 						),
 						ft.Row(
 							[
-								ft.Text("公開日", style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.RIGHT),
-								ft.Text(release_date, style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.NORMAL)
+								ft.Text("公開日", theme_style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.RIGHT),
+								ft.Text(release_date, theme_style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.NORMAL)
 							],
 							alignment=ft.MainAxisAlignment.CENTER,
 							vertical_alignment=ft.CrossAxisAlignment.CENTER
@@ -845,6 +851,7 @@ class DLPreviewView(ft.View):
 						ft.FilledButton(
 							"ダウンロード",
 							icon=ft.icons.DOWNLOAD,
+							style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.GREEN_500),
 							on_click=self.download
 						)
 					],
@@ -875,10 +882,10 @@ class DLAcceptView(ft.View):
 		)
 		self.download_button = ft.FilledButton(
 			"ダウンロード",
-			url=App.api_url + "/image/download/" + image_name,
+			url=App.API_URL + "/image/download/" + image_name,
 			url_target="_blank",
 			icon=ft.icons.DOWNLOAD,
-			style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.WHITE),
+			style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.GREEN_500),
 			key=image_name,
 			on_click=self.accept
 		)
@@ -912,12 +919,12 @@ class DLAcceptView(ft.View):
 								[
 									ft.Column(
 										[
-											ft.Text("ダウンロード条件", style=ft.TextThemeStyle.DISPLAY_SMALL, weight=ft.FontWeight.BOLD),
-											ft.Text("このフリー画像を使用する際は、\nTwitter @Apex_tyaneko をフォローしてから使用してください。", style=ft.TextThemeStyle.BODY_LARGE, size=18),
+											ft.Text("ダウンロード条件", theme_style=ft.TextThemeStyle.DISPLAY_SMALL, weight=ft.FontWeight.BOLD),
+											ft.Text("このフリー画像を使用する際は、\nTwitter @Apex_tyaneko をフォローしてから使用してください。", theme_style=ft.TextThemeStyle.BODY_LARGE, size=18),
 											ft.Column(
 												[
-													ft.Text("使用条件", style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, size=18),
-													ft.Text("・文字入れ: ○\n・立ち絵入れ: ○\n・上記以外の加工: ×", style=ft.TextThemeStyle.BODY_LARGE, size=18)
+													ft.Text("使用条件", theme_style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, size=18),
+													ft.Text("・文字入れ: ○\n・立ち絵入れ: ○\n・上記以外の加工: ×", theme_style=ft.TextThemeStyle.BODY_LARGE, size=18)
 												]
 											),
 											self.button_ctrls
@@ -977,7 +984,7 @@ class DLAcceptView(ft.View):
 
 
 async def main(page: ft.Page):
-	page.title = App.name
+	page.title = App.NAME
 	page.padding = 20
 
 	# 全体のフォント
@@ -991,8 +998,8 @@ async def main(page: ft.Page):
 	pop_flag = False
 	init_load = False
 
-	print("Version: " + App.version)
-	print("Commit: " + App.commit_sha)
+	print("Version: " + App.VERSION)
+	print("Commit: " + App.COMMIT_SHA)
 
 
 	# 読み込み表示
@@ -1010,12 +1017,12 @@ async def main(page: ft.Page):
 
 	# アプリバー
 	appbar = ft.AppBar(
-		title=ft.Text(App.name, size=16),
+		title=ft.Text(App.NAME, size=16),
 		center_title=False,
 		actions=[
 			# バージョン表記テキスト
 			ft.Container(
-				ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
+				ft.Text(f"Version {App.VERSION}-{App.BRANCH}.{App.COMMIT_SHA}", size=12, text_align=ft.TextAlign.RIGHT),
 				padding=ft.padding.only(0, 0, 20, 0),
 				alignment=ft.alignment.center_right,
 				expand=False
@@ -1057,7 +1064,7 @@ async def main(page: ft.Page):
 			#print(page.views)
 			pop_flag = False
 			page.route = "/"
-			page.title = App.name
+			page.title = App.NAME
 			await main_ctrl.adapt_appbar(page.width)
 			await main_ctrl.adapt_search_box(page.width)
 			await page.update_async()
@@ -1080,7 +1087,7 @@ async def main(page: ft.Page):
 						page.views.append(
 							view
 						)
-						page.title = troute.name + " - " + App.name
+						page.title = troute.name + " - " + App.NAME
 
 				# ダウンロード
 				elif troute.match("/image/download/:name"):
@@ -1099,16 +1106,19 @@ async def main(page: ft.Page):
 							await page.update_async()
 
 							# Twitterボタンをクリックした日から1ヶ月以上経過している場合もしくはクリックしていない場合はダウンロードボタンを無効化
-							tw_click_date = await page.client_storage.get_async("rel1cstyle.rig.twitter_click_date")
+							"""tw_click_date = await page.client_storage.get_async("rel1cstyle.rig.twitter_click_date")
 							if tw_click_date == None:
 								view.download_button.disabled = True
 								await view.update_async()
 							else:
 								if (datetime.datetime.utcnow() - datetime.datetime.fromtimestamp(tw_click_date)).days >= 30:
 									view.download_button.disabled = True
-									await view.update_async()
+									await view.update_async()"""
+							# フォローしていなくてもダウンロードできるようにする (一時的)
+							view.download_button.disabled = False
+							await view.update_async()
 
-							page.title = troute.name + " - " + App.name
+							page.title = troute.name + " - " + App.NAME
 
 							# 画面のサイズに合わせて画像の表示の初期値を切り替え
 							await view.adapt_image(page.width)
