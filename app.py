@@ -15,19 +15,18 @@ class App():
 
 	if path.isfile("_commit_sha.txt"):
 		with open("_commit_sha.txt", mode="r") as f:
-			COMMIT_SHA = f.read()[0:7]
-			COMMIT_SHA = COMMIT_SHA.replace("\n", "")
+			COMMIT_SHA = f.read()[0:7].replace("\n", "")
 	else:
 		COMMIT_SHA = "0"
 
 	if path.isfile("_branch_name.txt"):
 		with open("_branch_name.txt", mode="r") as f:
-			BRANCH = f.read()
-			BRANCH = BRANCH.replace("\n", "")
+			BRANCH = f.read().replace("\n", "")
 	else:
 		BRANCH = "dev"
 
-	if "ENV_NAME" in environ:
-		ENV = environ["ENV_NAME"]
+	if path.isfile("_env_name.txt"):
+		with open("_env_name.txt", mode="r") as f:
+			ENV = f.read().replace("\n", "")
 	else:
 		ENV = "UNKNOWN"
