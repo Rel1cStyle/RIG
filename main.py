@@ -45,9 +45,9 @@ class Images():
 
 		#with open("data/images.json", mode="rb") as k:
 		#	Images.data = json.loads(k.read())
-		#res = requests.get(App.api_url + "/image/list")
+		res = requests.get(App.api_url + "/image/list")
 
-		print("- Fetching image list from API")
+		"""print("- Fetching image list from API")
 		save_previews = False
 		if len(await page.client_storage.get_keys_async("rel1cstyle.rig.previews.")) == 0:
 			print(" - With Previews: True")
@@ -55,7 +55,7 @@ class Images():
 			res = requests.get(App.api_url + "/image/list", params={"with_previews": "True"}) # base64 形式のプレビュー付きのリストを取得する
 		else:
 			print(" - With Previews: False")
-			res = requests.get(App.api_url + "/image/list", params={"with_previews": "False"})
+			res = requests.get(App.api_url + "/image/list", params={"with_previews": "False"})"""
 
 		Images.data = res.json()
 		Images.list = []
@@ -63,7 +63,7 @@ class Images():
 		print("- Loading Legends & Tag List")
 		for k, v in Images.data.items():
 			# 初回取得時はクライアントストレージへプレビューを保存する
-			if save_previews:
+			"""if save_previews:
 				save_preview_success = False
 				print(" - Save preview image: " + k)
 				while not save_preview_success: # 保存に失敗した場合は再試行する
@@ -82,7 +82,7 @@ class Images():
 					await page.client_storage.set_async("rel1cstyle.rig.previews." + k, preview)
 				except Exception as e:
 					print(" - Failed to get preview image")
-					print(str(e))
+					print(str(e))"""
 
 			Images.list.append({"name": k} | v)
 
@@ -676,9 +676,9 @@ class RRIGApp(ft.View):
 					controls=[
 						# 画像
 						ft.Image(
-							#src=App.api_url + "/image/preview/" + v["name"],
+							src=App.api_url + "/image/preview/" + v["name"],
 							#src_base64=v["preview_base64"],
-							src_base64=await self.page.client_storage.get_async("rel1cstyle.rig.previews." + v["name"]),
+							#src_base64=await self.page.client_storage.get_async("rel1cstyle.rig.previews." + v["name"]),
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
@@ -809,7 +809,7 @@ class DLPreviewView(ft.View):
 		).strftime("%Y/%m/%d")
 
 		self.preview_image = ft.Image(
-			#src=App.api_url + "/image/preview/" + image_name,
+			src=App.api_url + "/image/preview/" + image_name,
 			#src_base64=data["preview_base64"],
 			fit=ft.ImageFit.CONTAIN,
 			repeat=ft.ImageRepeat.NO_REPEAT,
