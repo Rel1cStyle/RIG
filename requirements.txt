@@ -1,3 +1,4 @@
 flet==0.22.1
+hypercorn==0.17.3
 pyodide-http==0.2.1
 requests==2.31.0
