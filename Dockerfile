@@ -16,4 +16,4 @@ COPY *.json /app/
 COPY assets/ /app/assets/
 
 # 
-CMD ["hypercorn", "main:app", "--bind", "0.0.0.0:5100"]
+CMD ["hypercorn", "main:app", "--bind", "0.0.0.0:4111"]
