@@ -13,6 +13,7 @@ RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 # 
 COPY *.py /app/
 COPY *.json /app/
+COPY *.txt /app/
 COPY assets/ /app/assets/
 
 # 
