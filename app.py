@@ -7,6 +7,6 @@ class App():
 
 	API_URL = "https://rig-api-thunder.rel1c.work"
 
-	COMMIT_SHA = getenv("SOURCE_COMMIT")
+	COMMIT_SHA = getenv("SOURCE_COMMIT")[0:8]
 	BRANCH = getenv("COOLIFY_BRANCH")
-	ENV = getenv("DYNA")
+	ENV = "DYNA"
