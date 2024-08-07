@@ -105,9 +105,12 @@ class Images():
 		print(f"Done ({str(len(Images.data))})")
 
 
-def loading_ctrl() -> ft.Container:
-	return ft.Container(
-		ft.Column(
+class LoadingCtrl(ft.Container):
+	def __init__(self):
+		super().__init__()
+		self.alignment = ft.alignment.center
+		self.bgcolor = ft.colors.BACKGROUND
+		self.content = ft.Column(
 			[
 				ft.ProgressRing(),
 				ft.Text("Loading", text_align=ft.TextAlign.CENTER)
@@ -115,10 +118,7 @@ def loading_ctrl() -> ft.Container:
 			expand=True,
 			alignment=ft.MainAxisAlignment.CENTER,
 			horizontal_alignment=ft.CrossAxisAlignment.CENTER
-		),
-		#bgcolor=,
-		alignment=ft.alignment.center
-	)
+		)
 
 def appbar_ctrl() -> ft.AppBar:
 	return ft.AppBar(
@@ -572,7 +572,7 @@ class RRIGApp(ft.View):
 		print("Loading...")
 
 		# 読み込み表示
-		self.page.splash = loading_ctrl()
+		loading_ctrl.visible = True
 		await self.page.update_async()
 
 		self.image_grid.controls = []
@@ -729,7 +729,7 @@ class RRIGApp(ft.View):
 		self.search_result_text.value = f"Result: {str(count)}"
 
 		# 読み込み表示を消す
-		self.page.splash = None
+		loading_ctrl.visible = False
 		await self.page.update_async()
 
 		await self.update_async()
@@ -976,6 +976,8 @@ class DLAcceptView(ft.View):
 		await self.update_async()
 
 
+loading_ctrl = LoadingCtrl()
+
 async def main(page: ft.Page):
 	page.title = App.NAME
 	page.padding = 20
@@ -996,7 +998,7 @@ async def main(page: ft.Page):
 
 
 	# 読み込み表示
-	page.splash = loading_ctrl()
+	page.overlay.append(loading_ctrl)
 	await page.update_async()
 
 	# メインビュー
@@ -1154,13 +1156,13 @@ async def main(page: ft.Page):
 		await page.update_async()
 
 	async def load_image():
-		page.splash = loading_ctrl()
+		loading_ctrl.visible = True
 		await page.update_async()
 		await main_ctrl.load_legends()
 		await main_ctrl.load_skins()
 		await main_ctrl.load_tags()
 		await main_ctrl.load_images()
-		page.splash = None
+		loading_ctrl.visible = False
 		await page.update_async()
 
 	# ページルーティングのイベント定義
