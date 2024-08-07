@@ -3,7 +3,7 @@ from os import environ, path
 class App():
 	NAME = "Rel1cStyle RIG"
 
-	VERSION = "0.2.2"
+	VERSION = "0.2.3"
 
 	#API_URL = "https://api.rig.rel1c.work"
 	API_URL = "https://rig-api-thunder.rel1c.work"
