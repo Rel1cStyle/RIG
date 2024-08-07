@@ -378,10 +378,9 @@ class RRIGApp(ft.View):
 				self.search_text.width = width - 600 - 56
 		self.update()
 
-	def on_resize(self, e: ft.ControlEvent):
-		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
-		self.adapt_appbar(width)
-		self.adapt_search_box(width)
+	def on_resize(self, e):
+		self.adapt_appbar(e[0])
+		self.adapt_search_box(e[0])
 
 	# レジェンドボックス
 	def switch_legend_selection(self, legend_name: str, enable: bool=None):
@@ -962,10 +961,9 @@ class DLAcceptView(ft.View):
 	def accept(self, e):
 		pass
 
-	def on_resize(self, e: ft.ControlEvent):
-		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
+	def on_resize(self, e):
 		# 幅が800未満になったら画像を非表示にする
-		self.adapt_image(width)
+		self.adapt_image(e[0])
 
 	def adapt_image(self, width):
 		self.preview_image.visible = width >= 800
@@ -1034,11 +1032,11 @@ def main(page: ft.Page):
 
 	# サイズ変更時イベント
 	def on_resize(e: ft.ControlEvent):
-		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
+		_size = (page.width, page.height)
 		# ページに存在するビューをループして on_resize() が実装されていれば実行する
 		for view in page.views:
 			if hasattr(view, "on_resize"):
-				view.on_resize(e)
+				view.on_resize(_size)
 
 	##### ページルーティング #####
 	# ルート変更イベント
