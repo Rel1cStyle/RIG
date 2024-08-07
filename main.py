@@ -1078,7 +1078,7 @@ def main(page: ft.Page):
 						# ページの初期化
 						view = DLPreviewView(troute.name)
 						# プレビューの読み込み
-						view.preview_image.src_base64 = page.client_storage.get("rel1cstyle.rig.previews." + troute.name)
+						view.preview_image.src = App.API_URL + "/image/preview/" + troute.name
 						# ビューを生成
 						page.views.append(
 							view
