@@ -1,7 +1,7 @@
-import asyncio
 import datetime
-import os
 import logging
+import os
+import time
 import requests
 import pyodide_http
 
@@ -29,7 +29,7 @@ class Images():
 	tags: dict = {}
 
 	@staticmethod
-	async def load(page: ft.Page):
+	def load(page: ft.Page):
 		print("Loading Images...")
 
 		skin_base = {"count": 0}
@@ -344,7 +344,7 @@ class RRIGApp(ft.View):
 		super().__init__("/", controls=controls)
 
 	# モバイル用検索ボタンクリックイベント
-	async def search_button_mobile_on_click(self, e):
+	def search_button_mobile_on_click(self, e):
 		self.search_box_mobile_showing = not self.search_box_mobile_showing
 		self.sort_dropdown.visible = not self.search_box_mobile_showing
 		self.search_text.visible = self.search_box_mobile_showing
@@ -354,11 +354,11 @@ class RRIGApp(ft.View):
 		self.update()
 
 	# サイズ変更イベント
-	async def adapt_appbar(self, width):
+	def adapt_appbar(self, width):
 		self.appbar_ctrl.title.visible = width > 900
 		self.update()
 
-	async def adapt_search_box(self, width):
+	def adapt_search_box(self, width):
 		if width < 480: # モバイル
 			if not self.search_box_mobile_showing:
 				self.search_text.visible = False
@@ -378,13 +378,13 @@ class RRIGApp(ft.View):
 				self.search_text.width = width - 600 - 56
 		self.update()
 
-	async def on_resize(self, e: ft.ControlEvent):
+	def on_resize(self, e: ft.ControlEvent):
 		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
-		await self.adapt_appbar(width)
-		await self.adapt_search_box(width)
+		self.adapt_appbar(width)
+		self.adapt_search_box(width)
 
 	# レジェンドボックス
-	async def switch_legend_selection(self, legend_name: str, enable: bool=None):
+	def switch_legend_selection(self, legend_name: str, enable: bool=None):
 		"""レジェンドの選択状態を切り替えます。
 
 		Args:
@@ -405,27 +405,27 @@ class RRIGApp(ft.View):
 				break
 
 		# スキン一覧を更新する
-		await self.load_skins(self.selected_legends)
+		self.load_skins(self.selected_legends)
 
 	# 並べ替え
-	async def sort_images(self, key):
+	def sort_images(self, key):
 		self.sort_type = key
-		await self.load_images()
+		self.load_images()
 
-	async def sort_on_change(self, e):
-		await self.sort_images(e.control.value)
+	def sort_on_change(self, e):
+		self.sort_images(e.control.value)
 
-	async def reset_legend_selection(self):
+	def reset_legend_selection(self):
 		"""レジェンドの選択状態をリセットします。"""
 		self.selected_legends = []
 		for c in self.legend_box.controls:
 			c.value = False
-		await self.reset_skin_selection() # スキンの選択状態もリセットする
+		self.reset_skin_selection() # スキンの選択状態もリセットする
 		self.update()
 
 
 	# スキンボックス
-	async def switch_skin_selection(self, skin_name: str, enable: bool=None):
+	def switch_skin_selection(self, skin_name: str, enable: bool=None):
 		"""スキンの選択状態を切り替えます。
 
 		Args:
@@ -447,14 +447,14 @@ class RRIGApp(ft.View):
 
 		print(f"Selected Skins: {str(self.selected_skins)}")
 
-	async def reset_skin_selection(self):
+	def reset_skin_selection(self):
 		"""スキンの選択状態をリセットします。"""
 		self.selected_skins = []
-		await self.load_skins(self.selected_legends)
+		self.load_skins(self.selected_legends)
 
 
 	# タグボックス
-	async def switch_tag_selection(self, tag_name: str, enable: bool=None):
+	def switch_tag_selection(self, tag_name: str, enable: bool=None):
 		"""タグの選択状態を切り替えます。
 
 		Args:
@@ -476,7 +476,7 @@ class RRIGApp(ft.View):
 		
 		print(f"Selected Tags: {str(self.selected_tags)}")
 
-	async def reset_tag_selection(self):
+	def reset_tag_selection(self):
 		"""タグの選択状態をリセットします。"""
 		self.selected_tags = []
 		for c in self.tag_box.controls:
@@ -484,7 +484,7 @@ class RRIGApp(ft.View):
 		self.update()
 
 	# レジェンド&スキン選択部品の表示切り替え
-	async def filter_box_expand_button_on_click(self, e):
+	def filter_box_expand_button_on_click(self, e):
 		self.filter_box_expand = not self.filter_box_expand
 
 		self.filter_control_box.visible = self.filter_box_expand
@@ -503,11 +503,11 @@ class RRIGApp(ft.View):
 			self.filter_box_expand_button.text = "Close"
 		else:
 			self.filter_box_expand_button.text = "Filter"
-			await self.load_images() # 画像一覧を更新する
+			self.load_images() # 画像一覧を更新する
 		self.update()
 
 	# タグ選択部品の表示切り替え
-	async def tag_box_expand_button_on_click(self, e):
+	def tag_box_expand_button_on_click(self, e):
 		self.tag_box_expand = not self.tag_box_expand
 
 		self.tag_control_box.visible = self.tag_box_expand
@@ -524,51 +524,51 @@ class RRIGApp(ft.View):
 			self.tag_box_expand_button.text = "Close"
 		else:
 			self.tag_box_expand_button.text = "Tag"
-			await self.load_images() # 画像一覧を更新する
+			self.load_images() # 画像一覧を更新する
 		self.update()
 
 
-	async def legend_checkbox_on_change(self, e): # レジェンドが選択されたとき
-		await self.switch_legend_selection(e.control.key, e.control.value)
+	def legend_checkbox_on_change(self, e): # レジェンドが選択されたとき
+		self.switch_legend_selection(e.control.key, e.control.value)
 
-	async def legend_reset_button_on_click(self, e): # レジェンドのリセットボタンがクリックされたとき
-		await self.reset_legend_selection()
-
-
-	async def skin_checkbox_on_change(self, e): # スキンが選択されたとき
-		await self.switch_skin_selection(e.control.key, e.control.value)
-
-	async def skin_reset_button_on_click(self, e): # スキンのリセットボタンがクリックされたとき
-		await self.reset_skin_selection()
+	def legend_reset_button_on_click(self, e): # レジェンドのリセットボタンがクリックされたとき
+		self.reset_legend_selection()
 
 
-	async def tag_checkbox_on_change(self, e): # タグが選択されたとき
-		await self.switch_tag_selection(e.control.key, e.control.value)
+	def skin_checkbox_on_change(self, e): # スキンが選択されたとき
+		self.switch_skin_selection(e.control.key, e.control.value)
 
-	async def tag_reset_button_on_click(self, e): # タグのリセットボタンがクリックされたとき
-		await self.reset_tag_selection()
+	def skin_reset_button_on_click(self, e): # スキンのリセットボタンがクリックされたとき
+		self.reset_skin_selection()
+
+
+	def tag_checkbox_on_change(self, e): # タグが選択されたとき
+		self.switch_tag_selection(e.control.key, e.control.value)
+
+	def tag_reset_button_on_click(self, e): # タグのリセットボタンがクリックされたとき
+		self.reset_tag_selection()
 
 
 	# 検索ボックス
-	async def search_box_on_submit(self, e):
+	def search_box_on_submit(self, e):
 		self.search_word = e.control.value
-		await self.load_images()
+		self.load_images()
 
-	async def search_button_on_click(self, e):
+	def search_button_on_click(self, e):
 		self.search_word = self.search_text.value
-		await self.load_images()
+		self.load_images()
 
 	# 画像ダウンロードボタンクリック時
-	async def image_download_button_on_click(self, e):
+	def image_download_button_on_click(self, e):
 		self.page.go("/image/preview/" + os.path.splitext(os.path.basename(e.control.key))[0])
 
 	# 画像タグクリック時
-	async def image_tag_button_on_click(self, e):
-		await self.switch_tag_selection(e.control.text)
-		await self.load_images()
+	def image_tag_button_on_click(self, e):
+		self.switch_tag_selection(e.control.text)
+		self.load_images()
 
 	# 画像の読み込み&生成
-	async def load_images(self):
+	def load_images(self):
 		print("Loading...")
 
 		# 読み込み表示
@@ -736,7 +736,7 @@ class RRIGApp(ft.View):
 		print(f"Done: {str(count)}")
 
 	# レジェンドの読み込み&生成
-	async def load_legends(self):
+	def load_legends(self):
 		self.legend_box.controls = []
 		for k, v in Images.legends.items():
 			self.legend_box.controls.append(
@@ -751,7 +751,7 @@ class RRIGApp(ft.View):
 		self.update()
 
 	# スキンの読み込み&生成
-	async def load_skins(self, legends: list=Images.legends.keys()):
+	def load_skins(self, legends: list=Images.legends.keys()):
 		if len(legends) == 0: legends = Images.legends.keys()
 
 		skins = {}
@@ -782,7 +782,7 @@ class RRIGApp(ft.View):
 		self.update()
 
 	# タグの読み込み&生成
-	async def load_tags(self):
+	def load_tags(self):
 		self.tag_box.controls = []
 		for k, v in Images.tags.items():
 			self.tag_box.controls.append(
@@ -859,7 +859,7 @@ class DLPreviewView(ft.View):
 		]
 		super().__init__("/image/preview/" + image_name, controls=controls)
 
-	async def download(self, e):
+	def download(self, e):
 		self.page.go("/image/download/" + self.image_name)
 
 # ダウンロードビュー
@@ -950,24 +950,24 @@ class DLAcceptView(ft.View):
 
 		super().__init__("/image/download/" + image_name, controls=controls)
 
-	async def follow_twitter(self, e):
+	def follow_twitter(self, e):
 		# 3秒間待機
-		await asyncio.sleep(3)
+		time.sleep(3)
 		# ダウンロードボタンを有効化
 		self.download_button.disabled = False
 		# Twitter ボタンクリック日時をセット
 		self.page.client_storage.set("rel1cstyle.rig.twitter_click_date", datetime.datetime.timestamp(datetime.datetime.utcnow()))
 		self.update()
 
-	async def accept(self, e):
+	def accept(self, e):
 		pass
 
-	async def on_resize(self, e: ft.ControlEvent):
+	def on_resize(self, e: ft.ControlEvent):
 		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
 		# 幅が800未満になったら画像を非表示にする
-		await self.adapt_image(width)
+		self.adapt_image(width)
 
-	async def adapt_image(self, width):
+	def adapt_image(self, width):
 		self.preview_image.visible = width >= 800
 		if width >= 800:
 			self.button_ctrls.alignment=ft.MainAxisAlignment.START
@@ -978,7 +978,7 @@ class DLAcceptView(ft.View):
 
 loading_ctrl = LoadingCtrl()
 
-async def main(page: ft.Page):
+def main(page: ft.Page):
 	page.title = App.NAME
 	page.padding = 20
 
@@ -1033,15 +1033,16 @@ async def main(page: ft.Page):
 	#page.controls.append(appbar)
 
 	# サイズ変更時イベント
-	async def on_resize(e: ft.ControlEvent):
+	def on_resize(e: ft.ControlEvent):
 		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
 		# ページに存在するビューをループして on_resize() が実装されていれば実行する
 		for view in page.views:
-			if hasattr(view, "on_resize"): await view.on_resize(e)
+			if hasattr(view, "on_resize"):
+				view.on_resize(e)
 
 	##### ページルーティング #####
 	# ルート変更イベント
-	async def route_change(e: ft.RouteChangeEvent):
+	def route_change(e: ft.RouteChangeEvent):
 		nonlocal previous_route
 		nonlocal pop_flag
 		nonlocal init_load
@@ -1060,11 +1061,11 @@ async def main(page: ft.Page):
 			pop_flag = False
 			page.route = "/"
 			page.title = App.NAME
-			await main_ctrl.adapt_appbar(page.width)
-			await main_ctrl.adapt_search_box(page.width)
+			main_ctrl.adapt_appbar(page.width)
+			main_ctrl.adapt_search_box(page.width)
 			page.update()
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
-			if not init_load: await load_image(); init_load = True
+			if not init_load: load_image(); init_load = True
 		else:
 			#pop_flag = False
 			if pop_flag:
@@ -1116,7 +1117,7 @@ async def main(page: ft.Page):
 							page.title = troute.name + " - " + App.NAME
 
 							# 画面のサイズに合わせて画像の表示の初期値を切り替え
-							await view.adapt_image(page.width)
+							view.adapt_image(page.width)
 							#print("Width: " + str(page.width))
 					else:
 						if troute.name in Images.data: page.go("/image/preview/" + troute.name)
@@ -1128,7 +1129,7 @@ async def main(page: ft.Page):
 		previous_route = e.route
 
 	# ルートポップイベント
-	async def ex_view_pop():
+	def ex_view_pop():
 		nonlocal pop_flag
 
 		pop_flag = True
@@ -1141,8 +1142,8 @@ async def main(page: ft.Page):
 		#print("Route (Pop): \"" + str(top_route) + "\"")
 		page.go(top_route)
 
-	async def view_pop(view: ft.ViewPopEvent):
-		await ex_view_pop()
+	def view_pop(view: ft.ViewPopEvent):
+		ex_view_pop()
 		return
 		if len(page.views) > 1:
 			print("- Back")
@@ -1155,13 +1156,13 @@ async def main(page: ft.Page):
 		page.appbar.visible = True
 		page.update()
 
-	async def load_image():
+	def load_image():
 		loading_ctrl.visible = True
 		page.update()
-		await main_ctrl.load_legends()
-		await main_ctrl.load_skins()
-		await main_ctrl.load_tags()
-		await main_ctrl.load_images()
+		main_ctrl.load_legends()
+		main_ctrl.load_skins()
+		main_ctrl.load_tags()
+		main_ctrl.load_images()
 		loading_ctrl.visible = False
 		page.update()
 
@@ -1173,7 +1174,7 @@ async def main(page: ft.Page):
 	page.on_resize = on_resize
 
 	# 画像一覧を読み込み (APIから取得)
-	await Images.load(page)
+	Images.load(page)
 
 	# ページを移動する URLを直接入力してアクセスすると入力したパスのページが表示される
 	page.go(page.route, False)
