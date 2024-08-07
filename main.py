@@ -1,21 +1,13 @@
-import asyncio
 import datetime
-import math
-#import glob
-#import json
-import operator
-import os
-#import base64
 import logging
-#import time
-#from typing import Any, List, Optional, Union
+import os
+import time
 import requests
 import pyodide_http
 
 import flet as ft
 from flet_core.control import Control, OptionalNumber
 from flet_core.ref import Ref
-from flet_core.types import AnimationValue, ClipBehavior, OffsetValue, ResponsiveNumber, RotateValue, ScaleValue
 
 from app import App
 
@@ -36,7 +28,8 @@ class Images():
 	legends: dict = {}
 	tags: dict = {}
 
-	async def load(page: ft.Page):
+	@staticmethod
+	def load(page: ft.Page):
 		print("Loading Images...")
 
 		skin_base = {"count": 0}
@@ -45,17 +38,17 @@ class Images():
 
 		#with open("data/images.json", mode="rb") as k:
 		#	Images.data = json.loads(k.read())
-		#res = requests.get(App.api_url + "/image/list")
+		res = requests.get(App.API_URL + "/image/list")
 
-		print("- Fetching image list from API")
+		"""print("- Fetching image list from API")
 		save_previews = False
-		if len(await page.client_storage.get_keys_async("rel1cstyle.rig.previews.")) == 0:
+		if len(page.client_storage.get_keys("rel1cstyle.rig.previews.")) == 0:
 			print(" - With Previews: True")
 			save_previews = True
 			res = requests.get(App.api_url + "/image/list", params={"with_previews": "True"}) # base64 形式のプレビュー付きのリストを取得する
 		else:
 			print(" - With Previews: False")
-			res = requests.get(App.api_url + "/image/list", params={"with_previews": "False"})
+			res = requests.get(App.api_url + "/image/list", params={"with_previews": "False"})"""
 
 		Images.data = res.json()
 		Images.list = []
@@ -63,26 +56,26 @@ class Images():
 		print("- Loading Legends & Tag List")
 		for k, v in Images.data.items():
 			# 初回取得時はクライアントストレージへプレビューを保存する
-			if save_previews:
+			"""if save_previews:
 				save_preview_success = False
 				print(" - Save preview image: " + k)
 				while not save_preview_success: # 保存に失敗した場合は再試行する
 					try:
-						await page.client_storage.set_async("rel1cstyle.rig.previews." + k, v["preview_base64"])
+						page.client_storage.set("rel1cstyle.rig.previews." + k, v["preview_base64"])
 						v["preview_base64"] = None
 						save_preview_success = True
 					except Exception as e:
-						await asyncio.sleep(10)
+						asyncio.sleep(10)
 
 			# 保存されていないプレビューを取得して保存する
-			if await page.client_storage.get_async("rel1cstyle.rig.previews." + k) == None:
+			if page.client_storage.get("rel1cstyle.rig.previews." + k) == None:
 				print(" - Get preview image from API: " + k)
 				try:
 					preview = requests.get(App.api_url + "/image/preview/" + k, params={"type": "base64"}).content.decode()
-					await page.client_storage.set_async("rel1cstyle.rig.previews." + k, preview)
+					page.client_storage.set("rel1cstyle.rig.previews." + k, preview)
 				except Exception as e:
 					print(" - Failed to get preview image")
-					print(str(e))
+					print(str(e))"""
 
 			Images.list.append({"name": k} | v)
 
@@ -112,9 +105,12 @@ class Images():
 		print(f"Done ({str(len(Images.data))})")
 
 
-def loading_ctrl() -> ft.Container:
-	return ft.Container(
-		ft.Column(
+class LoadingCtrl(ft.Container):
+	def __init__(self):
+		super().__init__()
+		self.alignment = ft.alignment.center
+		self.bgcolor = ft.colors.BACKGROUND
+		self.content = ft.Column(
 			[
 				ft.ProgressRing(),
 				ft.Text("Loading", text_align=ft.TextAlign.CENTER)
@@ -122,10 +118,7 @@ def loading_ctrl() -> ft.Container:
 			expand=True,
 			alignment=ft.MainAxisAlignment.CENTER,
 			horizontal_alignment=ft.CrossAxisAlignment.CENTER
-		),
-		#bgcolor=,
-		alignment=ft.alignment.center
-	)
+		)
 
 def appbar_ctrl() -> ft.AppBar:
 	return ft.AppBar(
@@ -139,7 +132,13 @@ def appbar_ctrl() -> ft.AppBar:
 				#ft.Text(App.name, size=16),
 				# バージョン表記テキスト
 				ft.Container(
-					ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.LEFT),
+					ft.Column(
+						[
+							ft.Text(f"Version {App.VERSION}-{App.BRANCH}.{App.COMMIT_SHA} [{App.ENV}]", size=12, text_align=ft.TextAlign.LEFT),
+							ft.Text(f"Developed by Milkeyyy", size=11, text_align=ft.TextAlign.LEFT)
+						],
+						spacing=2
+					),
 					padding=ft.padding.only(0, 0, 0, 0),
 					alignment=ft.alignment.center_left,
 					expand=False
@@ -208,7 +207,7 @@ class RRIGApp(ft.View):
 					[
 						ft.Row(
 							[
-								ft.Text("Legends", style=ft.TextThemeStyle.TITLE_LARGE),
+								ft.Text("Legends", theme_style=ft.TextThemeStyle.TITLE_LARGE),
 								ft.FilledTonalButton("Reset", on_click=self.legend_reset_button_on_click)
 							]
 						),
@@ -220,7 +219,7 @@ class RRIGApp(ft.View):
 					[
 						ft.Row(
 							[
-								ft.Text("Skin", style=ft.TextThemeStyle.TITLE_LARGE),
+								ft.Text("Skin", theme_style=ft.TextThemeStyle.TITLE_LARGE),
 								ft.FilledTonalButton("Reset", on_click=self.skin_reset_button_on_click)
 							]
 						),
@@ -251,7 +250,7 @@ class RRIGApp(ft.View):
 					[
 						ft.Row(
 							[
-								ft.Text("Tag", style=ft.TextThemeStyle.TITLE_LARGE),
+								ft.Text("Tag", theme_style=ft.TextThemeStyle.TITLE_LARGE),
 								ft.FilledTonalButton("Reset", on_click=self.tag_reset_button_on_click)
 							]
 						),
@@ -345,21 +344,21 @@ class RRIGApp(ft.View):
 		super().__init__("/", controls=controls)
 
 	# モバイル用検索ボタンクリックイベント
-	async def search_button_mobile_on_click(self, e):
+	def search_button_mobile_on_click(self, e):
 		self.search_box_mobile_showing = not self.search_box_mobile_showing
 		self.sort_dropdown.visible = not self.search_box_mobile_showing
 		self.search_text.visible = self.search_box_mobile_showing
 		self.search_text.width = self.page.width - 100 - 56
 		if self.search_box_mobile_showing: self.search_button_mobile.icon = ft.icons.CLOSE
 		else: self.search_button_mobile.icon = ft.icons.SEARCH
-		await self.update_async()
+		self.update()
 
 	# サイズ変更イベント
-	async def adapt_appbar(self, width):
+	def adapt_appbar(self, width):
 		self.appbar_ctrl.title.visible = width > 900
-		await self.update_async()
+		self.update()
 
-	async def adapt_search_box(self, width):
+	def adapt_search_box(self, width):
 		if width < 480: # モバイル
 			if not self.search_box_mobile_showing:
 				self.search_text.visible = False
@@ -377,15 +376,15 @@ class RRIGApp(ft.View):
 				self.search_text.width = width - self.sort_dropdown.width - 100 - 56
 			else:
 				self.search_text.width = width - 600 - 56
-		await self.update_async()
+		self.update()
 
-	async def on_resize(self, e: ft.ControlEvent):
+	def on_resize(self, e: ft.ControlEvent):
 		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
-		await self.adapt_appbar(width)
-		await self.adapt_search_box(width)
+		self.adapt_appbar(width)
+		self.adapt_search_box(width)
 
 	# レジェンドボックス
-	async def switch_legend_selection(self, legend_name: str, enable: bool=None):
+	def switch_legend_selection(self, legend_name: str, enable: bool=None):
 		"""レジェンドの選択状態を切り替えます。
 
 		Args:
@@ -406,27 +405,27 @@ class RRIGApp(ft.View):
 				break
 
 		# スキン一覧を更新する
-		await self.load_skins(self.selected_legends)
+		self.load_skins(self.selected_legends)
 
 	# 並べ替え
-	async def sort_images(self, key):
+	def sort_images(self, key):
 		self.sort_type = key
-		await self.load_images()
+		self.load_images()
 
-	async def sort_on_change(self, e):
-		await self.sort_images(e.control.value)
+	def sort_on_change(self, e):
+		self.sort_images(e.control.value)
 
-	async def reset_legend_selection(self):
+	def reset_legend_selection(self):
 		"""レジェンドの選択状態をリセットします。"""
 		self.selected_legends = []
 		for c in self.legend_box.controls:
 			c.value = False
-		await self.reset_skin_selection() # スキンの選択状態もリセットする
-		await self.update_async()
+		self.reset_skin_selection() # スキンの選択状態もリセットする
+		self.update()
 
 
 	# スキンボックス
-	async def switch_skin_selection(self, skin_name: str, enable: bool=None):
+	def switch_skin_selection(self, skin_name: str, enable: bool=None):
 		"""スキンの選択状態を切り替えます。
 
 		Args:
@@ -448,14 +447,14 @@ class RRIGApp(ft.View):
 
 		print(f"Selected Skins: {str(self.selected_skins)}")
 
-	async def reset_skin_selection(self):
+	def reset_skin_selection(self):
 		"""スキンの選択状態をリセットします。"""
 		self.selected_skins = []
-		await self.load_skins(self.selected_legends)
+		self.load_skins(self.selected_legends)
 
 
 	# タグボックス
-	async def switch_tag_selection(self, tag_name: str, enable: bool=None):
+	def switch_tag_selection(self, tag_name: str, enable: bool=None):
 		"""タグの選択状態を切り替えます。
 
 		Args:
@@ -477,15 +476,15 @@ class RRIGApp(ft.View):
 		
 		print(f"Selected Tags: {str(self.selected_tags)}")
 
-	async def reset_tag_selection(self):
+	def reset_tag_selection(self):
 		"""タグの選択状態をリセットします。"""
 		self.selected_tags = []
 		for c in self.tag_box.controls:
 			c.value = False
-		await self.update_async()
+		self.update()
 
 	# レジェンド&スキン選択部品の表示切り替え
-	async def filter_box_expand_button_on_click(self, e):
+	def filter_box_expand_button_on_click(self, e):
 		self.filter_box_expand = not self.filter_box_expand
 
 		self.filter_control_box.visible = self.filter_box_expand
@@ -504,11 +503,11 @@ class RRIGApp(ft.View):
 			self.filter_box_expand_button.text = "Close"
 		else:
 			self.filter_box_expand_button.text = "Filter"
-			await self.load_images() # 画像一覧を更新する
-		await self.update_async()
+			self.load_images() # 画像一覧を更新する
+		self.update()
 
 	# タグ選択部品の表示切り替え
-	async def tag_box_expand_button_on_click(self, e):
+	def tag_box_expand_button_on_click(self, e):
 		self.tag_box_expand = not self.tag_box_expand
 
 		self.tag_control_box.visible = self.tag_box_expand
@@ -525,56 +524,56 @@ class RRIGApp(ft.View):
 			self.tag_box_expand_button.text = "Close"
 		else:
 			self.tag_box_expand_button.text = "Tag"
-			await self.load_images() # 画像一覧を更新する
-		await self.update_async()
+			self.load_images() # 画像一覧を更新する
+		self.update()
 
 
-	async def legend_checkbox_on_change(self, e): # レジェンドが選択されたとき
-		await self.switch_legend_selection(e.control.key, e.control.value)
+	def legend_checkbox_on_change(self, e): # レジェンドが選択されたとき
+		self.switch_legend_selection(e.control.key, e.control.value)
 
-	async def legend_reset_button_on_click(self, e): # レジェンドのリセットボタンがクリックされたとき
-		await self.reset_legend_selection()
-
-
-	async def skin_checkbox_on_change(self, e): # スキンが選択されたとき
-		await self.switch_skin_selection(e.control.key, e.control.value)
-
-	async def skin_reset_button_on_click(self, e): # スキンのリセットボタンがクリックされたとき
-		await self.reset_skin_selection()
+	def legend_reset_button_on_click(self, e): # レジェンドのリセットボタンがクリックされたとき
+		self.reset_legend_selection()
 
 
-	async def tag_checkbox_on_change(self, e): # タグが選択されたとき
-		await self.switch_tag_selection(e.control.key, e.control.value)
+	def skin_checkbox_on_change(self, e): # スキンが選択されたとき
+		self.switch_skin_selection(e.control.key, e.control.value)
 
-	async def tag_reset_button_on_click(self, e): # タグのリセットボタンがクリックされたとき
-		await self.reset_tag_selection()
+	def skin_reset_button_on_click(self, e): # スキンのリセットボタンがクリックされたとき
+		self.reset_skin_selection()
+
+
+	def tag_checkbox_on_change(self, e): # タグが選択されたとき
+		self.switch_tag_selection(e.control.key, e.control.value)
+
+	def tag_reset_button_on_click(self, e): # タグのリセットボタンがクリックされたとき
+		self.reset_tag_selection()
 
 
 	# 検索ボックス
-	async def search_box_on_submit(self, e):
+	def search_box_on_submit(self, e):
 		self.search_word = e.control.value
-		await self.load_images()
+		self.load_images()
 
-	async def search_button_on_click(self, e):
+	def search_button_on_click(self, e):
 		self.search_word = self.search_text.value
-		await self.load_images()
+		self.load_images()
 
 	# 画像ダウンロードボタンクリック時
-	async def image_download_button_on_click(self, e):
-		await self.page.go_async("/image/preview/" + os.path.splitext(os.path.basename(e.control.key))[0])
+	def image_download_button_on_click(self, e):
+		self.page.go("/image/preview/" + os.path.splitext(os.path.basename(e.control.key))[0])
 
 	# 画像タグクリック時
-	async def image_tag_button_on_click(self, e):
-		await self.switch_tag_selection(e.control.text)
-		await self.load_images()
+	def image_tag_button_on_click(self, e):
+		self.switch_tag_selection(e.control.text)
+		self.load_images()
 
 	# 画像の読み込み&生成
-	async def load_images(self):
+	def load_images(self):
 		print("Loading...")
 
 		# 読み込み表示
-		self.page.splash = loading_ctrl()
-		await self.page.update_async()
+		loading_ctrl.visible = True
+		self.page.update()
 
 		self.image_grid.controls = []
 		count = 0
@@ -676,9 +675,9 @@ class RRIGApp(ft.View):
 					controls=[
 						# 画像
 						ft.Image(
-							#src=App.api_url + "/image/preview/" + v["name"],
+							src=App.API_URL + "/image/preview/" + v["name"],
 							#src_base64=v["preview_base64"],
-							src_base64=await self.page.client_storage.get_async("rel1cstyle.rig.previews." + v["name"]),
+							#src_base64=self.page.client_storage.get("rel1cstyle.rig.previews." + v["name"]),
 							fit=ft.ImageFit.CONTAIN,
 							repeat=ft.ImageRepeat.NO_REPEAT,
 							border_radius=ft.border_radius.all(5)
@@ -730,14 +729,14 @@ class RRIGApp(ft.View):
 		self.search_result_text.value = f"Result: {str(count)}"
 
 		# 読み込み表示を消す
-		self.page.splash = None
-		await self.page.update_async()
+		loading_ctrl.visible = False
+		self.page.update()
 
-		await self.update_async()
+		self.update()
 		print(f"Done: {str(count)}")
 
 	# レジェンドの読み込み&生成
-	async def load_legends(self):
+	def load_legends(self):
 		self.legend_box.controls = []
 		for k, v in Images.legends.items():
 			self.legend_box.controls.append(
@@ -749,10 +748,10 @@ class RRIGApp(ft.View):
 				)
 			)
 		print(f"Legend Control Count: {len(self.legend_box.controls)}")
-		await self.update_async()
+		self.update()
 
 	# スキンの読み込み&生成
-	async def load_skins(self, legends: list=Images.legends.keys()):
+	def load_skins(self, legends: list=Images.legends.keys()):
 		if len(legends) == 0: legends = Images.legends.keys()
 
 		skins = {}
@@ -780,10 +779,10 @@ class RRIGApp(ft.View):
 					)
 				)
 		print(f"Skin Control Count: {len(self.skin_box.controls)}")
-		await self.update_async()
+		self.update()
 
 	# タグの読み込み&生成
-	async def load_tags(self):
+	def load_tags(self):
 		self.tag_box.controls = []
 		for k, v in Images.tags.items():
 			self.tag_box.controls.append(
@@ -795,7 +794,7 @@ class RRIGApp(ft.View):
 				)
 			)
 		print(f"Tag Control Count: {len(self.tag_box.controls)}")
-		await self.update_async()
+		self.update()
 
 
 # ダウンロードプレビュービュー
@@ -809,7 +808,7 @@ class DLPreviewView(ft.View):
 		).strftime("%Y/%m/%d")
 
 		self.preview_image = ft.Image(
-			#src=App.api_url + "/image/preview/" + image_name,
+			src=App.API_URL + "/image/preview/" + image_name,
 			#src_base64=data["preview_base64"],
 			fit=ft.ImageFit.CONTAIN,
 			repeat=ft.ImageRepeat.NO_REPEAT,
@@ -824,20 +823,20 @@ class DLPreviewView(ft.View):
 						self.preview_image,
 						ft.Text(
 							data["character"] + " - " + data["skin"],
-							style=ft.TextThemeStyle.HEADLINE_SMALL
+							theme_style=ft.TextThemeStyle.HEADLINE_SMALL
 						),
 						ft.Row(
 							[
-								ft.Text("通し番号", style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.RIGHT),
-								ft.Text(data["number"], style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.NORMAL),
+								ft.Text("通し番号", theme_style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.RIGHT),
+								ft.Text(data["number"], theme_style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.NORMAL),
 							],
 							alignment=ft.MainAxisAlignment.CENTER,
 							vertical_alignment=ft.CrossAxisAlignment.CENTER
 						),
 						ft.Row(
 							[
-								ft.Text("公開日", style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.RIGHT),
-								ft.Text(release_date, style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.NORMAL)
+								ft.Text("公開日", theme_style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.RIGHT),
+								ft.Text(release_date, theme_style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.NORMAL)
 							],
 							alignment=ft.MainAxisAlignment.CENTER,
 							vertical_alignment=ft.CrossAxisAlignment.CENTER
@@ -845,6 +844,7 @@ class DLPreviewView(ft.View):
 						ft.FilledButton(
 							"ダウンロード",
 							icon=ft.icons.DOWNLOAD,
+							style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.GREEN_500),
 							on_click=self.download
 						)
 					],
@@ -859,8 +859,8 @@ class DLPreviewView(ft.View):
 		]
 		super().__init__("/image/preview/" + image_name, controls=controls)
 
-	async def download(self, e):
-		await self.page.go_async("/image/download/" + self.image_name)
+	def download(self, e):
+		self.page.go("/image/download/" + self.image_name)
 
 # ダウンロードビュー
 class DLAcceptView(ft.View):
@@ -875,10 +875,10 @@ class DLAcceptView(ft.View):
 		)
 		self.download_button = ft.FilledButton(
 			"ダウンロード",
-			url=App.api_url + "/image/download/" + image_name,
+			url=App.API_URL + "/image/download/" + image_name,
 			url_target="_blank",
 			icon=ft.icons.DOWNLOAD,
-			style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.WHITE),
+			style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.GREEN_500),
 			key=image_name,
 			on_click=self.accept
 		)
@@ -912,12 +912,12 @@ class DLAcceptView(ft.View):
 								[
 									ft.Column(
 										[
-											ft.Text("ダウンロード条件", style=ft.TextThemeStyle.DISPLAY_SMALL, weight=ft.FontWeight.BOLD),
-											ft.Text("このフリー画像を使用する際は、\nTwitter @Apex_tyaneko をフォローしてから使用してください。", style=ft.TextThemeStyle.BODY_LARGE, size=18),
+											ft.Text("ダウンロード条件", theme_style=ft.TextThemeStyle.DISPLAY_SMALL, weight=ft.FontWeight.BOLD),
+											ft.Text("このフリー画像を使用する際は、\nTwitter @Apex_tyaneko をフォローしてから使用してください。", theme_style=ft.TextThemeStyle.BODY_LARGE, size=18),
 											ft.Column(
 												[
-													ft.Text("使用条件", style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, size=18),
-													ft.Text("・文字入れ: ○\n・立ち絵入れ: ○\n・上記以外の加工: ×", style=ft.TextThemeStyle.BODY_LARGE, size=18)
+													ft.Text("使用条件", theme_style=ft.TextThemeStyle.BODY_LARGE, weight=ft.FontWeight.BOLD, size=18),
+													ft.Text("・文字入れ: ○\n・立ち絵入れ: ○\n・上記以外の加工: ×", theme_style=ft.TextThemeStyle.BODY_LARGE, size=18)
 												]
 											),
 											self.button_ctrls
@@ -950,34 +950,36 @@ class DLAcceptView(ft.View):
 
 		super().__init__("/image/download/" + image_name, controls=controls)
 
-	async def follow_twitter(self, e):
+	def follow_twitter(self, e):
 		# 3秒間待機
-		await asyncio.sleep(3)
+		time.sleep(3)
 		# ダウンロードボタンを有効化
 		self.download_button.disabled = False
 		# Twitter ボタンクリック日時をセット
-		await self.page.client_storage.set_async("rel1cstyle.rig.twitter_click_date", datetime.datetime.timestamp(datetime.datetime.utcnow()))
-		await self.update_async()
+		self.page.client_storage.set("rel1cstyle.rig.twitter_click_date", datetime.datetime.timestamp(datetime.datetime.utcnow()))
+		self.update()
 
-	async def accept(self, e):
+	def accept(self, e):
 		pass
 
-	async def on_resize(self, e: ft.ControlEvent):
+	def on_resize(self, e: ft.ControlEvent):
 		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
 		# 幅が800未満になったら画像を非表示にする
-		await self.adapt_image(width)
+		self.adapt_image(width)
 
-	async def adapt_image(self, width):
+	def adapt_image(self, width):
 		self.preview_image.visible = width >= 800
 		if width >= 800:
 			self.button_ctrls.alignment=ft.MainAxisAlignment.START
 		else:
 			self.button_ctrls.alignment=ft.MainAxisAlignment.START
-		await self.update_async()
+		self.update()
 
 
-async def main(page: ft.Page):
-	page.title = App.name
+loading_ctrl = LoadingCtrl()
+
+def main(page: ft.Page):
+	page.title = App.NAME
 	page.padding = 20
 
 	# 全体のフォント
@@ -991,13 +993,13 @@ async def main(page: ft.Page):
 	pop_flag = False
 	init_load = False
 
-	print("Version: " + App.version)
-	print("Commit: " + App.commit_sha)
+	print("Version: " + App.VERSION)
+	print("Commit: " + App.COMMIT_SHA)
 
 
 	# 読み込み表示
-	page.splash = loading_ctrl()
-	await page.update_async()
+	page.overlay.append(loading_ctrl)
+	page.update()
 
 	# メインビュー
 	main_ctrl = RRIGApp()
@@ -1006,16 +1008,16 @@ async def main(page: ft.Page):
 	page.views.clear()
 	page.views.append(main_ctrl)
 
-	await page.update_async()
+	page.update()
 
 	# アプリバー
 	appbar = ft.AppBar(
-		title=ft.Text(App.name, size=16),
+		title=ft.Text(App.NAME, size=16),
 		center_title=False,
 		actions=[
 			# バージョン表記テキスト
 			ft.Container(
-				ft.Text(f"Version {App.version}-{App.branch}.{App.commit_sha}", size=12, text_align=ft.TextAlign.RIGHT),
+				ft.Text(f"Version {App.VERSION}-{App.BRANCH}.{App.COMMIT_SHA}", size=12, text_align=ft.TextAlign.RIGHT),
 				padding=ft.padding.only(0, 0, 20, 0),
 				alignment=ft.alignment.center_right,
 				expand=False
@@ -1031,15 +1033,16 @@ async def main(page: ft.Page):
 	#page.controls.append(appbar)
 
 	# サイズ変更時イベント
-	async def on_resize(e: ft.ControlEvent):
+	def on_resize(e: ft.ControlEvent):
 		_size = e.data.split(","); width = float(_size[0]); height = float(_size[1])
 		# ページに存在するビューをループして on_resize() が実装されていれば実行する
 		for view in page.views:
-			if hasattr(view, "on_resize"): await view.on_resize(e)
+			if hasattr(view, "on_resize"):
+				view.on_resize(e)
 
 	##### ページルーティング #####
 	# ルート変更イベント
-	async def route_change(e: ft.RouteChangeEvent):
+	def route_change(e: ft.RouteChangeEvent):
 		nonlocal previous_route
 		nonlocal pop_flag
 		nonlocal init_load
@@ -1057,12 +1060,12 @@ async def main(page: ft.Page):
 			#print(page.views)
 			pop_flag = False
 			page.route = "/"
-			page.title = App.name
-			await main_ctrl.adapt_appbar(page.width)
-			await main_ctrl.adapt_search_box(page.width)
-			await page.update_async()
+			page.title = App.NAME
+			main_ctrl.adapt_appbar(page.width)
+			main_ctrl.adapt_search_box(page.width)
+			page.update()
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
-			if not init_load: await load_image(); init_load = True
+			if not init_load: load_image(); init_load = True
 		else:
 			#pop_flag = False
 			if pop_flag:
@@ -1075,12 +1078,12 @@ async def main(page: ft.Page):
 						# ページの初期化
 						view = DLPreviewView(troute.name)
 						# プレビューの読み込み
-						view.preview_image.src_base64 = await page.client_storage.get_async("rel1cstyle.rig.previews." + troute.name)
+						view.preview_image.src = App.API_URL + "/image/preview/" + troute.name
 						# ビューを生成
 						page.views.append(
 							view
 						)
-						page.title = troute.name + " - " + App.name
+						page.title = troute.name + " - " + App.NAME
 
 				# ダウンロード
 				elif troute.match("/image/download/:name"):
@@ -1096,34 +1099,37 @@ async def main(page: ft.Page):
 								view
 							)
 
-							await page.update_async()
+							page.update()
 
 							# Twitterボタンをクリックした日から1ヶ月以上経過している場合もしくはクリックしていない場合はダウンロードボタンを無効化
-							tw_click_date = await page.client_storage.get_async("rel1cstyle.rig.twitter_click_date")
+							"""tw_click_date = page.client_storage.get("rel1cstyle.rig.twitter_click_date")
 							if tw_click_date == None:
 								view.download_button.disabled = True
-								await view.update_async()
+								view.update()
 							else:
 								if (datetime.datetime.utcnow() - datetime.datetime.fromtimestamp(tw_click_date)).days >= 30:
 									view.download_button.disabled = True
-									await view.update_async()
+									view.update()"""
+							# フォローしていなくてもダウンロードできるようにする (一時的)
+							view.download_button.disabled = False
+							view.update()
 
-							page.title = troute.name + " - " + App.name
+							page.title = troute.name + " - " + App.NAME
 
 							# 画面のサイズに合わせて画像の表示の初期値を切り替え
-							await view.adapt_image(page.width)
+							view.adapt_image(page.width)
 							#print("Width: " + str(page.width))
 					else:
-						if troute.name in Images.data: await page.go_async("/image/preview/" + troute.name)
-						else: await page.go_async("/")
+						if troute.name in Images.data: page.go("/image/preview/" + troute.name)
+						else: page.go("/")
 
-				await page.update_async()
+				page.update()
 				#print(page.views)
 		# 次のルート変更時に以前のルートを取得するための変数
 		previous_route = e.route
 
 	# ルートポップイベント
-	async def ex_view_pop():
+	def ex_view_pop():
 		nonlocal pop_flag
 
 		pop_flag = True
@@ -1134,31 +1140,31 @@ async def main(page: ft.Page):
 		else: top_route = "/"
 		#print("Views: " + str(page.views))
 		#print("Route (Pop): \"" + str(top_route) + "\"")
-		await page.go_async(top_route)
+		page.go(top_route)
 
-	async def view_pop(view: ft.ViewPopEvent):
-		await ex_view_pop()
+	def view_pop(view: ft.ViewPopEvent):
+		ex_view_pop()
 		return
 		if len(page.views) > 1:
 			print("- Back")
-			await page.go_async(top_view.route)
-			#await page.update_async()
+			page.go(top_view.route)
+			#page.update()
 		else:
 			print("- Root")
-			await page.go_async("/")
+			page.go("/")
 		page.appbar = appbar
 		page.appbar.visible = True
-		await page.update_async()
+		page.update()
 
-	async def load_image():
-		page.splash = loading_ctrl()
-		await page.update_async()
-		await main_ctrl.load_legends()
-		await main_ctrl.load_skins()
-		await main_ctrl.load_tags()
-		await main_ctrl.load_images()
-		page.splash = None
-		await page.update_async()
+	def load_image():
+		loading_ctrl.visible = True
+		page.update()
+		main_ctrl.load_legends()
+		main_ctrl.load_skins()
+		main_ctrl.load_tags()
+		main_ctrl.load_images()
+		loading_ctrl.visible = False
+		page.update()
 
 	# ページルーティングのイベント定義
 	page.on_route_change = route_change
@@ -1168,14 +1174,14 @@ async def main(page: ft.Page):
 	page.on_resize = on_resize
 
 	# 画像一覧を読み込み (APIから取得)
-	await Images.load(page)
+	Images.load(page)
 
 	# ページを移動する URLを直接入力してアクセスすると入力したパスのページが表示される
-	await page.go_async(page.route, False)
+	page.go(page.route, False)
 
 	page.splash = None
 
-	await page.update_async()
+	page.update()
 
 
-ft.app(target=main, assets_dir="assets", port=8000, view=ft.AppView.FLET_APP, web_renderer=ft.WebRenderer.HTML)
+ft.app(target=main, assets_dir="assets", port=4111)
