@@ -1,21 +1,13 @@
 import asyncio
 import datetime
-import math
-#import glob
-#import json
-import operator
 import os
-#import base64
 import logging
-#import time
-#from typing import Any, List, Optional, Union
 import requests
 import pyodide_http
 
 import flet as ft
 from flet_core.control import Control, OptionalNumber
 from flet_core.ref import Ref
-from flet_core.types import AnimationValue, ClipBehavior, OffsetValue, ResponsiveNumber, RotateValue, ScaleValue
 
 from app import App
 
@@ -36,6 +28,7 @@ class Images():
 	legends: dict = {}
 	tags: dict = {}
 
+	@staticmethod
 	async def load(page: ft.Page):
 		print("Loading Images...")
 
