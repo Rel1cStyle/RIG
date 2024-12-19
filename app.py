@@ -3,7 +3,7 @@ from os import path
 class App():
 	NAME = "Rel1cStyle RIG"
 
-	VERSION = "0.2.4"
+	VERSION = "0.2.5"
 
 	API_URL = "https://api-rig-rel1cstyle.ezolys.com"
 
