@@ -1,13 +1,11 @@
-from os import environ, path
+from os import path
 
 class App():
 	NAME = "Rel1cStyle RIG"
 
-	VERSION = "0.2.3"
+	VERSION = "0.2.4"
 
-	#API_URL = "https://api.rig.rel1c.work"
-	API_URL = "https://rig-api-thunder.rel1c.work"
-	#preview_image_url = "https://rig-r2-images.huerisalter.com"
+	API_URL = "https://api-rig-rel1cstyle.ezolys.com"
 
 	COMMIT_SHA = ""
 	BRANCH = ""
