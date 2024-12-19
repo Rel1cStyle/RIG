@@ -1,18 +1,13 @@
 import datetime
-import logging
 import os
 import time
 import requests
 import pyodide_http
 
 import flet as ft
-from flet_core.control import Control, OptionalNumber
-from flet_core.ref import Ref
 
 from app import App
 
-
-logging.basicConfig(level=logging.INFO)
 
 pyodide_http.patch_requests()
 
@@ -20,11 +15,11 @@ pyodide_http.patch_requests()
 def lists_match(l1: list, l2: list) -> bool:
 	if len(l1) != len(l2):
 		return False
-	return all(x == y and type(x) == type(y) for x, y in zip(l1, l2))
+	return all(x == y and isinstance(x, type(y)) for x, y in zip(l1, l2))
 
 class Images():
 	data: dict = {}
-	list: list = []
+	image_list: list = []
 	legends: dict = {}
 	tags: dict = {}
 
@@ -38,7 +33,7 @@ class Images():
 
 		#with open("data/images.json", mode="rb") as k:
 		#	Images.data = json.loads(k.read())
-		res = requests.get(App.API_URL + "/image/list")
+		res = requests.get(App.API_URL + "/image/list", timeout=10)
 
 		"""print("- Fetching image list from API")
 		save_previews = False
@@ -51,7 +46,7 @@ class Images():
 			res = requests.get(App.api_url + "/image/list", params={"with_previews": "False"})"""
 
 		Images.data = res.json()
-		Images.list = []
+		Images.image_list = []
 
 		print("- Loading Legends & Tag List")
 		for k, v in Images.data.items():
@@ -68,7 +63,7 @@ class Images():
 						asyncio.sleep(10)
 
 			# 保存されていないプレビューを取得して保存する
-			if page.client_storage.get("rel1cstyle.rig.previews." + k) == None:
+			if page.client_storage.get("rel1cstyle.rig.previews." + k) is None:
 				print(" - Get preview image from API: " + k)
 				try:
 					preview = requests.get(App.api_url + "/image/preview/" + k, params={"type": "base64"}).content.decode()
@@ -77,7 +72,7 @@ class Images():
 					print(" - Failed to get preview image")
 					print(str(e))"""
 
-			Images.list.append({"name": k} | v)
+			Images.image_list.append({"name": k} | v)
 
 			legend = str(v["character"])
 			skin = str(v["skin"])
@@ -86,17 +81,20 @@ class Images():
 			Images.legends.setdefault(legend, legend_base.copy())["count"] += 1 # レジェンドのカウントを増やす
 
 			# スキン一覧を作成
-			if Images.legends[legend]["skins"] == None: Images.legends[legend]["skins"] = dict()
+			if Images.legends[legend]["skins"] is None:
+				Images.legends[legend]["skins"] = dict()
 			Images.legends[legend]["skins"].setdefault(skin, skin_base.copy())["count"] += 1 # スキンのカウントを増やす
 
 			# タグ一覧を作成
-			for t in v["tags"]: Images.tags.setdefault(t, tag_base.copy())["count"] += 1 # タグのカウントを増やす
+			for t in v["tags"]:
+				Images.tags.setdefault(t, tag_base.copy())["count"] += 1 # タグのカウントを増やす
 
 		# レジェンド一覧を名前順に並べ替え
 		Images.legends = dict(sorted(Images.legends.items()))
 
 		# スキン一覧を名前順に並べ替え
-		for k, v in Images.legends.items(): v["skins"] = dict(sorted(v["skins"].items()))
+		for k, v in Images.legends.items():
+			v["skins"] = dict(sorted(v["skins"].items()))
 
 		# タグ一覧を名前順に並べ替え
 		Images.tags = dict(sorted(Images.tags.items()))
@@ -349,8 +347,10 @@ class RRIGApp(ft.View):
 		self.sort_dropdown.visible = not self.search_box_mobile_showing
 		self.search_text.visible = self.search_box_mobile_showing
 		self.search_text.width = self.page.width - 100 - 56
-		if self.search_box_mobile_showing: self.search_button_mobile.icon = ft.icons.CLOSE
-		else: self.search_button_mobile.icon = ft.icons.SEARCH
+		if self.search_box_mobile_showing:
+			self.search_button_mobile.icon = ft.icons.CLOSE
+		else:
+			self.search_button_mobile.icon = ft.icons.SEARCH
 		self.update()
 
 	# サイズ変更イベント
@@ -390,12 +390,15 @@ class RRIGApp(ft.View):
 			tag_name (str): 切り替えるタグの名前
 			enable (bool, optional): 対象のタグを有効にするか無効にするか None の場合は切り替える
 		"""
-		if enable == None: enable = legend_name not in self.selected_legends
+		if enable is None:
+			enable = legend_name not in self.selected_legends
 
 		if enable:
-			if legend_name not in self.selected_legends: self.selected_legends.append(legend_name)
+			if legend_name not in self.selected_legends:
+				self.selected_legends.append(legend_name)
 		else:
-			if legend_name in self.selected_legends: self.selected_legends.remove(legend_name)
+			if legend_name in self.selected_legends:
+				self.selected_legends.remove(legend_name)
 
 		# チェックボックスの状態を更新する
 		for c in self.legend_box.controls:
@@ -431,12 +434,15 @@ class RRIGApp(ft.View):
 			skin_name (str): 切り替えるスキンの名前
 			enable (bool, optional): 対象のスキンを有効にするか無効にするか None の場合は切り替える
 		"""
-		if enable == None: enable = skin_name not in self.selected_skins
+		if enable is None:
+			enable = skin_name not in self.selected_skins
 
 		if enable:
-			if skin_name not in self.selected_skins: self.selected_skins.append(skin_name)
+			if skin_name not in self.selected_skins:
+				self.selected_skins.append(skin_name)
 		else:
-			if skin_name in self.selected_skins: self.selected_skins.remove(skin_name)
+			if skin_name in self.selected_skins:
+				self.selected_skins.remove(skin_name)
 
 		# チェックボックスの状態を更新する
 		for c in self.skin_box.controls:
@@ -460,12 +466,15 @@ class RRIGApp(ft.View):
 			tag_name (str): 切り替えるタグの名前
 			enable (bool, optional): 対象のタグを有効にするか無効にするか None の場合は切り替える
 		"""
-		if enable == None: enable = tag_name not in self.selected_tags
+		if enable is None:
+			enable = tag_name not in self.selected_tags
 		
 		if enable:
-			if tag_name not in self.selected_tags: self.selected_tags.append(tag_name)
+			if tag_name not in self.selected_tags:
+				self.selected_tags.append(tag_name)
 		else:
-			if tag_name in self.selected_tags: self.selected_tags.remove(tag_name)
+			if tag_name in self.selected_tags:
+				self.selected_tags.remove(tag_name)
 
 		# チェックボックスの状態を更新する
 		for c in self.tag_box.controls:
@@ -577,20 +586,21 @@ class RRIGApp(ft.View):
 		self.image_grid.controls = []
 		count = 0
 
-		if self.search_word != "" or len(self.selected_tags) >= 1: print(f"- Filtering - Word: {self.search_text.value} | Tags: {str(self.selected_tags)}")
+		if self.search_word != "" or len(self.selected_tags) >= 1:
+			print(f"- Filtering - Word: {self.search_text.value} | Tags: {str(self.selected_tags)}")
 
 		# 並べ替え
 		print("- Sort type: " + self.sort_type)
 		if self.sort_type == "name_asc": # 名前 (昇順)
-			data = sorted(Images.list, key=lambda x: (x["character"], x["skin"], str(x["number"]).zfill(3)), reverse=False)
+			data = sorted(Images.image_list, key=lambda x: (x["character"], x["skin"], str(x["number"]).zfill(3)), reverse=False)
 		elif self.sort_type == "name_desc": # 名前 (降順)
-			data = sorted(Images.list, key=lambda x: (x["character"], x["skin"], str(x["number"]).zfill(3)), reverse=True)
+			data = sorted(Images.image_list, key=lambda x: (x["character"], x["skin"], str(x["number"]).zfill(3)), reverse=True)
 		elif self.sort_type == "release_date_desc": # 公開日 (新しい順)
-			data = sorted(Images.list, key=lambda x: (float(x["creation_date"])), reverse=True)
+			data = sorted(Images.image_list, key=lambda x: (float(x["creation_date"])), reverse=True)
 		elif self.sort_type == "release_date_asc": # 公開日 (古い順)
-			data = sorted(Images.list, key=lambda x: (float(x["creation_date"])), reverse=False)
+			data = sorted(Images.image_list, key=lambda x: (float(x["creation_date"])), reverse=False)
 		else: # それ以外
-			data = sorted(Images.list, key=lambda x: (x["character"], x["skin"], str(x["number"]).zfill(3)), reverse=False)
+			data = sorted(Images.image_list, key=lambda x: (x["character"], x["skin"], str(x["number"]).zfill(3)), reverse=False)
 		#data = dict(sorted(Images.data.items()))
 		#data = sorted(Images.list, key=lambda x: (x["character"], x["skin"], x["number"]))
 		#data = sorted(Images.list, key=lambda x: (float(x["creation_date"])), reverse=True)
@@ -615,7 +625,8 @@ class RRIGApp(ft.View):
 					continue 
 
 			# 検索ワードで絞り込み
-			if self.search_word.lower() not in v["name"].lower(): continue
+			if self.search_word.lower() not in v["name"].lower():
+				continue
 
 			count += 1
 			#print(f"- {image} ({str(count)}/{len(data)})")
@@ -751,14 +762,17 @@ class RRIGApp(ft.View):
 
 	# スキンの読み込み&生成
 	def load_skins(self, legends: list=Images.legends.keys()):
-		if len(legends) == 0: legends = Images.legends.keys()
+		if len(legends) == 0:
+			legends = Images.legends.keys()
 
 		skins = {}
 
 		for l in legends:
 			for k, v in Images.legends[l]["skins"].items():
-				if k not in skins: skins[k] = v # スキンを追加する
-				else: skins[k]["count"] += v["count"] # すでにスキンがリストにある場合はカウントを増やす
+				if k not in skins:
+					skins[k] = v # スキンを追加する
+				else:
+					skins[k]["count"] += v["count"] # すでにスキンがリストにある場合はカウントを増やす
 
 		# スキン名一覧を名前順に並べ替え
 		skins = dict(sorted(skins.items()))
@@ -1063,7 +1077,8 @@ def main(page: ft.Page):
 			main_ctrl.adapt_search_box(page.width)
 			page.update()
 			# 画像の初回読み込みが行われていない場合は読み込みを実行する
-			if not init_load: load_image(); init_load = True
+			if not init_load:
+				load_image(); init_load = True
 		else:
 			#pop_flag = False
 			if pop_flag:
@@ -1072,7 +1087,8 @@ def main(page: ft.Page):
 				# ダウンロードプレビュー
 				if troute.match("/image/preview/:name"):
 					if troute.name in Images.data:
-						if previous_route.startswith("/image/download/") and pop_flag == False: page.views.pop()
+						if previous_route.startswith("/image/download/") and pop_flag == False:
+							page.views.pop()
 						# ページの初期化
 						view = DLPreviewView(troute.name)
 						# プレビューの読み込み
@@ -1089,7 +1105,8 @@ def main(page: ft.Page):
 					if previous_route.startswith("/image/preview/"):
 						if troute.name in Images.data:
 							# ダウンロード確認ビューを削除
-							if len(page.views) >= 2: page.views.pop()
+							if len(page.views) >= 2:
+								page.views.pop()
 
 							# ビューを生成
 							view = DLAcceptView(troute.name)
@@ -1101,7 +1118,7 @@ def main(page: ft.Page):
 
 							# Twitterボタンをクリックした日から1ヶ月以上経過している場合もしくはクリックしていない場合はダウンロードボタンを無効化
 							"""tw_click_date = page.client_storage.get("rel1cstyle.rig.twitter_click_date")
-							if tw_click_date == None:
+							if tw_click_date is None:
 								view.download_button.disabled = True
 								view.update()
 							else:
@@ -1118,8 +1135,10 @@ def main(page: ft.Page):
 							view.adapt_image(page.width)
 							#print("Width: " + str(page.width))
 					else:
-						if troute.name in Images.data: page.go("/image/preview/" + troute.name)
-						else: page.go("/")
+						if troute.name in Images.data:
+							page.go("/image/preview/" + troute.name)
+						else:
+							page.go("/")
 
 				page.update()
 				#print(page.views)
@@ -1134,8 +1153,10 @@ def main(page: ft.Page):
 		page.views.pop()
 		#if len(page.views) < 1: top_view = page.views[0]
 		#else: top_view = page.views[-1]
-		if len(page.views) > 1: top_route = page.views[-1].route
-		else: top_route = "/"
+		if len(page.views) > 1:
+			top_route = page.views[-1].route
+		else:
+			top_route = "/"
 		#print("Views: " + str(page.views))
 		#print("Route (Pop): \"" + str(top_route) + "\"")
 		page.go(top_route)
