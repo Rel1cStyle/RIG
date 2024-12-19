@@ -107,7 +107,7 @@ class LoadingCtrl(ft.Container):
 	def __init__(self):
 		super().__init__()
 		self.alignment = ft.alignment.center
-		self.bgcolor = ft.colors.BACKGROUND
+		self.bgcolor = ft.Colors.SURFACE
 		self.content = ft.Column(
 			[
 				ft.ProgressRing(),
@@ -295,7 +295,7 @@ class RRIGApp(ft.View):
 		)
 
 		##### 検索ボックス #####
-		self.search_button = ft.IconButton(ft.icons.SEARCH, on_click=self.search_button_on_click)
+		self.search_button = ft.IconButton(ft.Icons.SEARCH, on_click=self.search_button_on_click)
 		self.search_text = ft.TextField(label="Search", on_submit=self.search_box_on_submit)
 		self.search_box = ft.Row(
 			[
@@ -307,7 +307,7 @@ class RRIGApp(ft.View):
 			alignment=ft.MainAxisAlignment.CENTER
 		)
 
-		self.search_button_mobile = ft.IconButton(ft.icons.SEARCH, on_click=self.search_button_mobile_on_click)
+		self.search_button_mobile = ft.IconButton(ft.Icons.SEARCH, on_click=self.search_button_mobile_on_click)
 
 		self.search_box_base = ft.Container(
 			ft.Row(
@@ -348,9 +348,9 @@ class RRIGApp(ft.View):
 		self.search_text.visible = self.search_box_mobile_showing
 		self.search_text.width = self.page.width - 100 - 56
 		if self.search_box_mobile_showing:
-			self.search_button_mobile.icon = ft.icons.CLOSE
+			self.search_button_mobile.icon = ft.Icons.CLOSE
 		else:
-			self.search_button_mobile.icon = ft.icons.SEARCH
+			self.search_button_mobile.icon = ft.Icons.SEARCH
 		self.update()
 
 	# サイズ変更イベント
@@ -367,7 +367,7 @@ class RRIGApp(ft.View):
 				self.search_text.width = self.search_text.width
 		else: # 通常
 			self.search_box_mobile_showing = False
-			self.search_button_mobile.icon = ft.icons.SEARCH
+			self.search_button_mobile.icon = ft.Icons.SEARCH
 			self.sort_dropdown.visible = True
 			self.search_text.visible = True
 			self.search_button.visible = True
@@ -651,11 +651,11 @@ class RRIGApp(ft.View):
 					)
 				# 選択中のタグは色を変えて枠線をつける
 				if tag in self.selected_tags:
-					tb.bgcolor = ft.colors.BLACK
-					tb.border = ft.border.all(2.2, color=ft.colors.WHITE)
+					tb.bgcolor = ft.Colors.BLACK
+					tb.border = ft.border.all(2.2, color=ft.Colors.WHITE)
 				else:
-					tb.bgcolor = ft.colors.BLACK54
-					tb.border = ft.border.all(1.2, color=ft.colors.WHITE)
+					tb.bgcolor = ft.Colors.BLACK54
+					tb.border = ft.border.all(1.2, color=ft.Colors.WHITE)
 				# タグ部品一覧へ追加
 				tag_buttons.append(
 					tb
@@ -663,12 +663,12 @@ class RRIGApp(ft.View):
 
 			# ダウンロードボタン
 			"""dl_button = ft.IconButton(
-				ft.icons.DOWNLOAD,
+				ft.Icons.DOWNLOAD,
 				#url=App.api_url + "/image/download/" + k,
 				key=k,
 				style=ft.ButtonStyle(
-					color=ft.colors.WHITE,
-					bgcolor=ft.colors.BLACK54
+					color=ft.Colors.WHITE,
+					bgcolor=ft.Colors.BLACK54
 				),
 				on_click=self.image_download_button_on_click
 			)"""
@@ -716,7 +716,7 @@ class RRIGApp(ft.View):
 							#gradient=ft.LinearGradient(
 							#	begin=ft.alignment.top_center,
 							#	end=ft.alignment.bottom_center,
-							#	colors=[ft.colors.TRANSPARENT, ft.colors.BLACK]
+							#	colors=[ft.Colors.TRANSPARENT, ft.Colors.BLACK]
 							#)
 						),
 						# タグ
@@ -856,8 +856,8 @@ class DLPreviewView(ft.View):
 						),
 						ft.FilledButton(
 							"ダウンロード",
-							icon=ft.icons.DOWNLOAD,
-							style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.GREEN_500),
+							icon=ft.Icons.DOWNLOAD,
+							style=ft.ButtonStyle(color=ft.Colors.WHITE, bgcolor=ft.Colors.GREEN_500),
 							on_click=self.download
 						)
 					],
@@ -890,8 +890,8 @@ class DLAcceptView(ft.View):
 			"ダウンロード",
 			url=App.API_URL + "/image/download/" + image_name,
 			url_target="_blank",
-			icon=ft.icons.DOWNLOAD,
-			style=ft.ButtonStyle(color=ft.colors.WHITE, bgcolor=ft.colors.GREEN_500),
+			icon=ft.Icons.DOWNLOAD,
+			style=ft.ButtonStyle(color=ft.Colors.WHITE, bgcolor=ft.Colors.GREEN_500),
 			key=image_name,
 			on_click=self.accept
 		)
@@ -1190,15 +1190,13 @@ def main(page: ft.Page):
 	page.on_view_pop = view_pop
 
 	# サイズ変更時のイベント定義
-	page.on_resize = on_resize
+	page.on_resized = on_resize
 
 	# 画像一覧を読み込み (APIから取得)
 	Images.load(page)
 
 	# ページを移動する URLを直接入力してアクセスすると入力したパスのページが表示される
 	page.go(page.route, False)
-
-	page.splash = None
 
 	page.update()
 
